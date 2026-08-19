@@ -28,7 +28,7 @@ export default async function BerkasSPPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Check role

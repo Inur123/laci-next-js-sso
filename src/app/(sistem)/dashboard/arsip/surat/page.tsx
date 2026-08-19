@@ -25,7 +25,7 @@ export default async function ArsipSuratPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   return (

@@ -27,7 +27,7 @@ async function EditPeriodeContent({
 }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const periode = await getPeriode(id);
 

@@ -12,8 +12,8 @@ export const auth = betterAuth({
 
   // Redirect error autentikasi ke halaman login
   pages: {
-    signIn: "/login",
-    error: `${process.env.BETTER_AUTH_URL}/login`,
+    signIn: "/",
+    error: `${process.env.BETTER_AUTH_URL}/`,
   },
 
   // Izinkan auto-link akun jika email SSO cocok dengan akun yang sudah terdaftar

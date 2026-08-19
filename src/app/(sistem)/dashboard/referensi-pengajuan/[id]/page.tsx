@@ -36,7 +36,7 @@ export default async function ReferensiDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   return (
     <ReferensiDetailContent params={params} sessionId={session.user.id} />

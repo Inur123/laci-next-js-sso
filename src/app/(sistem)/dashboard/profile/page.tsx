@@ -12,7 +12,7 @@ export default async function ProfilePage() {
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect("/login");
+    redirect("/");
   }
 
   const dbUser = await prisma.user.findUnique({
@@ -20,7 +20,7 @@ export default async function ProfilePage() {
   });
 
   if (!dbUser) {
-    redirect("/login");
+    redirect("/");
   }
 
   const userForProfile = {

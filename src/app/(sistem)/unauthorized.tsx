@@ -9,7 +9,7 @@ export default function Unauthorized() {
       description="Sesi Anda mungkin telah berakhir atau Anda belum login ke sistem. Silakan masuk kembali untuk melanjutkan."
       icon={<UserLock size={48} className="text-green-600" />}
       buttonText="Login Sekarang"
-      buttonHref="/login"
+      buttonHref="/"
       buttonColor="bg-green-700 hover:bg-blue-800 shadow-blue-100"
     />
   );

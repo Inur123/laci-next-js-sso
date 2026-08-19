@@ -19,7 +19,7 @@ export default async function AddBerkasPimpinanPage() {
 
 async function AddBerkasPimpinanContent() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },

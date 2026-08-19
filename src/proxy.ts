@@ -11,7 +11,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isOnDashboard = pathname.startsWith("/dashboard");
-  const isOnAuthPage = pathname.startsWith("/login");
+  const isOnAuthPage = pathname === "/";
 
   // Ambil domain dari header Nginx (agar tidak perlu hardcode domain)
   const proto = request.headers.get("x-forwarded-proto") || "https";
@@ -32,7 +32,7 @@ export default async function proxy(request: NextRequest) {
 
   // Jika di dashboard dan TIDAK ada cookie → langsung redirect login
   if (isOnDashboard && !sessionCookie) {
-    return NextResponse.redirect(new URL("/login", origin));
+    return NextResponse.redirect(new URL("/", origin));
   }
 
   // Hanya fetch session jika ada cookie (artinya mungkin sudah login)
@@ -76,11 +76,11 @@ export default async function proxy(request: NextRequest) {
   // 1. Dashboard: cek login dan status aktif
   if (isOnDashboard) {
     if (!session || !user) {
-      return NextResponse.redirect(new URL("/login", origin));
+      return NextResponse.redirect(new URL("/", origin));
     }
 
     if (user.isActive === false) {
-      const loginUrl = new URL("/login", origin);
+      const loginUrl = new URL("/", origin);
       loginUrl.searchParams.set("error", "account_inactive");
       return NextResponse.redirect(loginUrl);
     }
@@ -104,5 +104,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/"],
 };

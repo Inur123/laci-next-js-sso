@@ -21,31 +21,33 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, UserPlus, Loader2, Copy } from "lucide-react";
+import { Search, Loader2, Copy, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getPeriodes } from "@/app/actions/periode-actions";
 import {
-  getAnggotaList,
-  copyAnggotaToCurrentPeriode,
-} from "@/app/actions/anggota-actions";
+  getWilayahList,
+  copyWilayahToCurrentPeriode,
+} from "@/app/actions/wilayah-actions";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { JenisWilayah } from "@prisma/client";
 
-export function CopyMemberDialog({ userRole }: { userRole: string }) {
+export function CopyWilayahDialog({ userRole, jenis }: { userRole: string, jenis: JenisWilayah }) {
   const isCabang = userRole === "SEKRETARIS_CABANG";
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [fetchingMembers, setFetchingMembers] = useState(false);
+  const [fetchingWilayah, setFetchingWilayah] = useState(false);
 
   const [periodes, setPeriodes] = useState<
     { id: string; nama: string; isActive: boolean }[]
   >([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
 
-  const [members, setMembers] = useState<any[]>([]);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [wilayahList, setWilayahList] = useState<any[]>([]);
+  const [selectedWilayahIds, setSelectedWilayahIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+
+  const jenisLabel = jenis === "RANTING" ? "Ranting" : "PK";
 
   // Load periods when dialog opens
   useEffect(() => {
@@ -59,73 +61,74 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
     }
   }, [open]);
 
-  // Load members when period selected
+  // Load wilayah when period selected
   useEffect(() => {
     if (selectedPeriodId) {
-      const loadMembers = async () => {
-        setFetchingMembers(true);
+      const loadWilayah = async () => {
+        setFetchingWilayah(true);
         try {
-          const result = await getAnggotaList(
+          const result = await getWilayahList(
+            jenis,
             "",
             1,
             100,
             undefined,
             selectedPeriodId,
           );
-          setMembers(result.data);
-          setSelectedMemberIds([]); // Reset selection when period changes
+          setWilayahList(result.data);
+          setSelectedWilayahIds([]); // Reset selection when period changes
         } catch (error) {
-          toast.error("Gagal memuat data anggota");
+          toast.error("Gagal memuat data wilayah");
         } finally {
-          setFetchingMembers(false);
+          setFetchingWilayah(false);
         }
       };
-      loadMembers();
+      loadWilayah();
     } else {
-      setMembers([]);
+      setWilayahList([]);
     }
-  }, [selectedPeriodId]);
+  }, [selectedPeriodId, jenis]);
 
-  const filteredMembers = members.filter(
-    (m) =>
-      m.namaLengkap.toLowerCase().includes(search.toLowerCase()) ||
-      (m.jabatan && m.jabatan.toLowerCase().includes(search.toLowerCase())),
+  const filteredWilayah = wilayahList.filter(
+    (w) =>
+      w.nama.toLowerCase().includes(search.toLowerCase()) ||
+      (w.ketua && w.ketua.toLowerCase().includes(search.toLowerCase())),
   );
 
-  const toggleMember = (id: string) => {
-    setSelectedMemberIds((prev) =>
-      prev.includes(id) ? prev.filter((mid) => mid !== id) : [...prev, id],
+  const toggleWilayah = (id: string) => {
+    setSelectedWilayahIds((prev) =>
+      prev.includes(id) ? prev.filter((wid) => wid !== id) : [...prev, id],
     );
   };
 
   const toggleAll = () => {
-    if (selectedMemberIds.length === filteredMembers.length) {
-      setSelectedMemberIds([]);
+    if (selectedWilayahIds.length === filteredWilayah.length && filteredWilayah.length > 0) {
+      setSelectedWilayahIds([]);
     } else {
-      setSelectedMemberIds(filteredMembers.map((m) => m.id));
+      setSelectedWilayahIds(filteredWilayah.map((w) => w.id));
     }
   };
 
   const handleCopy = async () => {
-    if (selectedMemberIds.length === 0) {
-      toast.error("Pilih minimal satu anggota");
+    if (selectedWilayahIds.length === 0) {
+      toast.error(`Pilih minimal satu data ${jenisLabel.toLowerCase()}`);
       return;
     }
 
     setLoading(true);
     try {
-      const result = await copyAnggotaToCurrentPeriode(selectedMemberIds);
+      const result = await copyWilayahToCurrentPeriode(selectedWilayahIds, jenis);
       if (result.success) {
         toast.success(result.success);
         setOpen(false);
         // Reset state
         setSelectedPeriodId("");
-        setSelectedMemberIds([]);
+        setSelectedWilayahIds([]);
       } else {
         toast.error(result.error);
       }
     } catch (error) {
-      toast.error("Gagal menyalin anggota");
+      toast.error(`Gagal menyalin data ${jenisLabel.toLowerCase()}`);
     } finally {
       setLoading(false);
     }
@@ -150,16 +153,16 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
       <DialogContent className="sm:max-w-[500px] gap-0 p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus
+            <MapPin
               className={cn(
                 "h-5 w-5",
                 isCabang ? "text-blue-600" : "text-green-600",
               )}
             />
-            Salin Anggota
+            Salin {jenisLabel}
           </DialogTitle>
           <DialogDescription>
-            Pilih periode asal dan centang anggota yang akan dilanjutkan ke
+            Pilih periode asal dan centang data {jenisLabel.toLowerCase()} yang akan dilanjutkan ke
             periode saat ini.
           </DialogDescription>
         </DialogHeader>
@@ -197,7 +200,7 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Cari nama atau jabatan..."
+                  placeholder={`Cari nama ${jenisLabel.toLowerCase()} atau ketua...`}
                   className="pl-9 h-9"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -206,8 +209,8 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
 
               <div className="flex items-center justify-between px-1">
                 <div className="text-xs font-medium text-slate-500">
-                  {selectedMemberIds.length} terpilih dari{" "}
-                  {filteredMembers.length}
+                  {selectedWilayahIds.length} terpilih dari{" "}
+                  {filteredWilayah.length}
                 </div>
                 <Button
                   variant="ghost"
@@ -220,59 +223,47 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
                   )}
                   onClick={toggleAll}
                 >
-                  {selectedMemberIds.length === filteredMembers.length
+                  {selectedWilayahIds.length === filteredWilayah.length && filteredWilayah.length > 0
                     ? "Batal Semua"
                     : "Pilih Semua"}
                 </Button>
               </div>
 
               <ScrollArea className="h-[250px] rounded-md border bg-white p-1">
-                {fetchingMembers ? (
+                {fetchingWilayah ? (
                   <div className="flex flex-col items-center justify-center h-[240px] gap-2 text-slate-400">
                     <Loader2 className="h-6 w-6 animate-spin" />
-                    <p className="text-xs">Memuat anggota...</p>
+                    <p className="text-xs">Memuat data...</p>
                   </div>
-                ) : filteredMembers.length === 0 ? (
+                ) : filteredWilayah.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[240px] text-slate-400">
-                    <p className="text-xs">Tidak ada anggota ditemukan</p>
+                    <p className="text-xs">Tidak ada data ditemukan</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {filteredMembers.map((m) => (
+                    {filteredWilayah.map((w) => (
                       <div
-                        key={m.id}
+                        key={w.id}
                         className={cn(
                           "flex items-center gap-3 p-2 rounded-md transition-colors cursor-pointer hover:bg-slate-50",
-                          selectedMemberIds.includes(m.id) &&
+                          selectedWilayahIds.includes(w.id) &&
                             (isCabang ? "bg-blue-50/50" : "bg-green-50/50"),
                         )}
-                        onClick={() => toggleMember(m.id)}
+                        onClick={() => toggleWilayah(w.id)}
                       >
                         <Checkbox
-                          checked={selectedMemberIds.includes(m.id)}
-                          onCheckedChange={() => toggleMember(m.id)}
+                          checked={selectedWilayahIds.includes(w.id)}
+                          onCheckedChange={() => toggleWilayah(w.id)}
                           onClick={(e: React.MouseEvent) => e.stopPropagation()}
                         />
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <Avatar className="h-8 w-8 border border-slate-100">
-                            <AvatarFallback
-                              className={cn(
-                                "text-[10px] font-bold",
-                                isCabang
-                                  ? "bg-blue-50 text-blue-600"
-                                  : "bg-green-50 text-green-600",
-                              )}
-                            >
-                              {m.namaLengkap.slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
                           <div className="flex flex-col min-w-0">
                             <span className="text-sm font-semibold text-slate-900 truncate">
-                              {m.namaLengkap}
+                              {w.nama}
                             </span>
-                            {m.jabatan && (
+                            {w.ketua && (
                               <span className="text-[10px] text-slate-500 truncate">
-                                {m.jabatan}
+                                {w.ketua}
                               </span>
                             )}
                           </div>
@@ -296,7 +287,7 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
           </Button>
           <Button
             onClick={handleCopy}
-            disabled={loading || selectedMemberIds.length === 0}
+            disabled={loading || selectedWilayahIds.length === 0}
             className={cn(
               "text-white min-w-[100px] shadow-md",
               isCabang
@@ -310,7 +301,7 @@ export function CopyMemberDialog({ userRole }: { userRole: string }) {
                 Menyalin...
               </>
             ) : (
-              `Salin ${selectedMemberIds.length} Anggota`
+              `Salin ${selectedWilayahIds.length} Data`
             )}
           </Button>
         </DialogFooter>

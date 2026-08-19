@@ -151,6 +151,10 @@ const moduleConfig: Record<LogModule, { label: string; className: string }> = {
     className:
       "bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100",
   },
+  WILAYAH: {
+    label: "Wilayah",
+    className: "bg-teal-50 text-teal-600 border-teal-200 hover:bg-teal-100",
+  },
 };
 
 type LogActivityListProps = {

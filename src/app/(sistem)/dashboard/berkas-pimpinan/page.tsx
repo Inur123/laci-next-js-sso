@@ -20,7 +20,7 @@ export default async function BerkasPimpinanPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   return (
     <Suspense fallback={<BerkasPimpinanSkeleton />}>

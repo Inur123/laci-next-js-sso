@@ -9,6 +9,7 @@ import {
   ChevronsUpDown,
   Users,
   Archive,
+  MapPin,
   ChevronDown,
   FileText,
   CalendarDays,
@@ -131,7 +132,7 @@ export function AppSidebar({
     await signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.replace("/login?logout=success");
+          router.replace("/?logout=success");
         },
       },
     });
@@ -255,6 +256,75 @@ export function AppSidebar({
 
                 return (
                   <React.Fragment key={item.title}>
+                    
+                    {item.title === "Data Anggota" && user.emailVerified && (
+                      <Collapsible
+                        asChild
+                        defaultOpen={pathname.startsWith("/dashboard/wilayah")}
+                        className="group/collapsible"
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              isActive={pathname.startsWith("/dashboard/wilayah")}
+                              tooltip="Wilayah"
+                              className={
+                                pathname.startsWith("/dashboard/wilayah")
+                                  ? "sidebar-arsip-active"
+                                  : ""
+                              }
+                            >
+                              <MapPin />
+                              <span>Wilayah</span>
+                              <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              <SidebarMenuSubItem>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={pathname.startsWith("/dashboard/wilayah/ranting")}
+                                  className={
+                                    pathname.startsWith("/dashboard/wilayah/ranting")
+                                      ? "sidebar-submenu-active"
+                                      : ""
+                                  }
+                                >
+                                  <Link
+                                    href="/dashboard/wilayah/ranting"
+                                    onClick={handleMenuClick}
+                                  >
+                                    <MapPin />
+                                    <span>Ranting</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                              <SidebarMenuSubItem>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={pathname.startsWith("/dashboard/wilayah/pk")}
+                                  className={
+                                    pathname.startsWith("/dashboard/wilayah/pk")
+                                      ? "sidebar-submenu-active"
+                                      : ""
+                                  }
+                                >
+                                  <Link
+                                    href="/dashboard/wilayah/pk"
+                                    onClick={handleMenuClick}
+                                  >
+                                    <MapPin />
+                                    <span>PK</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    )}
+
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         asChild

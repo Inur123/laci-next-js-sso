@@ -22,7 +22,7 @@ export default async function AddKegiatanPage() {
 async function AddKegiatanContent() {
   const session = await auth();
 
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
 
   if (session.user.role !== "SEKRETARIS_CABANG") {
     redirect("/dashboard");

@@ -119,16 +119,7 @@ export default function AnggotaDetailClient({
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            asChild
-            className="flex-1 sm:flex-initial shadow-sm border-slate-200"
-          >
-            <Link href={`/dashboard/anggota/${anggota.id}/edit`}>
-              <Pencil className="w-4 h-4 mr-2 text-blue-600" />
-              Edit Data
-            </Link>
-          </Button>
+
           <Button
             variant="destructive"
             onClick={() => setIsDeleteModalOpen(true)}

@@ -27,7 +27,7 @@ export default async function PengajuanBerkasPage({
   searchParams: SearchParams;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const userRole = session.user.role;
   const isCabang = userRole === "SEKRETARIS_CABANG";

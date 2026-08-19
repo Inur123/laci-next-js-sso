@@ -21,7 +21,7 @@ async function AddArsipSuratContent() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Check if user has active periode

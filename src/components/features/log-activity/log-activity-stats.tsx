@@ -46,6 +46,7 @@ const moduleConfig: Record<
   AUTH: { label: "Autentikasi", color: "slate", icon: Lock },
   USER: { label: "Update Profil", color: "slate", icon: User },
   PRESENSI: { label: "Presensi", color: "emerald", icon: Activity },
+  WILAYAH: { label: "Wilayah", color: "teal", icon: Activity },
 };
 
 export function LogActivityStats({
@@ -117,6 +118,7 @@ export function LogActivityStats({
         "PENGAJUAN_BERKAS",
         "PERIODE",
         "AUTH",
+        "WILAYAH",
         "PRESENSI",
       ]
     : [
@@ -127,6 +129,7 @@ export function LogActivityStats({
         "ANGGOTA",
         "PERIODE",
         "AUTH",
+        "WILAYAH",
         "PRESENSI",
       ];
 

@@ -50,19 +50,19 @@ export default async function DashboardLayout({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Removed unstable_cache because it caused stagnant UI state
   const dbUser = await getUserWithActivePeriod(session.user.id);
 
   if (!dbUser) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Proteksi: Blokir jika akun tidak aktif
   if (!dbUser.isActive) {
-    redirect("/login?error=inactive");
+    redirect("/?error=inactive");
   }
 
   // Extract active period from included data

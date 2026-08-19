@@ -14,7 +14,7 @@ export default async function EmailLogPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Only Sekretaris Cabang can access this page

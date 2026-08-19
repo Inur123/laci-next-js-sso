@@ -329,6 +329,10 @@ const moduleConfig: Record<LogModule, { label: string; className: string }> = {
     label: "Presensi",
     className: "bg-emerald-50 text-emerald-600 border-emerald-200",
   },
+  WILAYAH: {
+    label: "Wilayah",
+    className: "bg-teal-50 text-teal-600 border-teal-200",
+  },
 };
 
 export default function LogDetailPage({
@@ -349,7 +353,7 @@ async function LogDetailContent({
   params: Promise<{ id: string }>;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const { id } = await params;
   const log = await getLogActivityById(id);

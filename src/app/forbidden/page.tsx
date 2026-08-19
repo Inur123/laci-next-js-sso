@@ -9,7 +9,7 @@ export default function Forbidden() {
       message="Anda tidak memiliki izin untuk mengakses halaman ini!"
       actionButton={{
         label: "Masuk",
-        href: "/login",
+        href: "/",
         icon: LogIn,
       }}
     />

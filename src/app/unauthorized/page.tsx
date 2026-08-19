@@ -9,7 +9,7 @@ export default function Unauthorized() {
       message="Anda perlu login untuk mengakses halaman ini!"
       actionButton={{
         label: "Masuk Sekarang",
-        href: "/login",
+        href: "/",
         icon: LogIn,
       }}
     />

@@ -32,6 +32,7 @@ model User {
   periodes         Periode[]
   presensi         Presensi[]
   sessions         Session[]
+  wilayahs         Wilayah[]
 
   @@index([role, isActive, emailVerified])
   @@index([createdAt])
@@ -54,6 +55,7 @@ model Periode {
   pengajuanToCabang PengajuanBerkas[] @relation("PengajuanToCabang")
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   presensi          Presensi[]
+  wilayahs          Wilayah[]
 
   @@unique([nama, userId])
   @@index([userId])
@@ -182,9 +184,10 @@ model PresensiData {
 }
 
 model Anggota {
-  id                     String       @id @default(cuid())
+  id                     String           @id @default(cuid())
   userId                 String
   periodeId              String
+  wilayahId              String?
   nik                    String?
   nia                    String?
   email                  String?
@@ -201,14 +204,19 @@ model Anggota {
   pekerjaan              String?
   jenjangPendidikan      String?
   namaInstansiPendidikan String?
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @updatedAt
-  periode                Periode      @relation(fields: [periodeId], references: [id], onDelete: Cascade)
-  user                   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status                 StatusVerifikasi @default(PENDING)
+  alasanPenolakan        String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  periode                Periode          @relation(fields: [periodeId], references: [id], onDelete: Cascade)
+  user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wilayah                Wilayah?         @relation(fields: [wilayahId], references: [id], onDelete: SetNull)
   pendidikans            Pendidikan[]
   perkaderans            Perkaderan[]
 
   @@index([userId, periodeId])
+  @@index([wilayahId])
+  @@index([status])
 }
 
 model Pendidikan {
@@ -374,6 +382,12 @@ enum StatusPengajuan {
   DITOLAK
 }
 
+enum StatusVerifikasi {
+  PENDING
+  DITERIMA
+  DITOLAK
+}
+
 enum PenerimaSurat {
   IPNU
   IPPNU
@@ -409,6 +423,7 @@ enum LogModule {
   USER
   AUTH
   PRESENSI
+  WILAYAH
 }
 
 enum EmailType {
@@ -423,4 +438,30 @@ enum EmailStatus {
   PENDING
   SENT
   FAILED
+}
+
+
+enum JenisWilayah {
+  RANTING
+  PK
+}
+
+model Wilayah {
+  id          String       @id @default(cuid())
+  userId      String
+  periodeId   String
+  jenis       JenisWilayah
+  nama        String
+  ketua       String?
+  kontak      String?
+  alamat      String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  periode     Periode      @relation(fields: [periodeId], references: [id], onDelete: Cascade)
+  anggota     Anggota[]
+
+  @@index([userId, jenis])
+  @@index([periodeId])
 }

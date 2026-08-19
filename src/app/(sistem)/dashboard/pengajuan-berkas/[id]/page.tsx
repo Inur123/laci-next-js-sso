@@ -15,7 +15,7 @@ export default async function DetailPengajuanBerkasPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const isCabang = session.user.role === "SEKRETARIS_CABANG";
 

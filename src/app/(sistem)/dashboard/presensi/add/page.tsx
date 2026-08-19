@@ -22,7 +22,7 @@ export default async function AddPresensiPage() {
 
 async function AddPresensiContent() {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">

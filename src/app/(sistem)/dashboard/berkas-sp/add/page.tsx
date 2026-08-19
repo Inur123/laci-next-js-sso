@@ -21,7 +21,7 @@ async function AddBerkasSPContent() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Role Check

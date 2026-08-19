@@ -9,10 +9,10 @@ export async function GET(request: Request) {
     error === "unable_to_create_user"
   ) {
     return NextResponse.redirect(
-      new URL("/login?error=unregistered", request.url),
+      new URL("/?error=unregistered", request.url),
     );
   }
 
   // Semua error lain juga balik ke login
-  return NextResponse.redirect(new URL("/login?error=auth_error", request.url));
+  return NextResponse.redirect(new URL("/?error=auth_error", request.url));
 }

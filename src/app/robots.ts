@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard/", "/api/", "/login", "/register"],
+      disallow: ["/dashboard/", "/api/", "/register"],
     },
     sitemap: "https://laci.pelajarnumagetan.or.id/sitemap.xml",
   };

@@ -28,7 +28,7 @@ async function EditArsipSuratContent({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const { id } = await params;

@@ -17,7 +17,7 @@ export default function AddPeriodePage() {
 
 async function AddPeriodeContent() {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   return (
     <div className="max-w-xl space-y-8">

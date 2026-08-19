@@ -32,7 +32,7 @@ async function EditKegiatanContent({
 }) {
   const session = await auth();
 
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
 
   if (session.user.role !== "SEKRETARIS_CABANG") {
     redirect("/dashboard");

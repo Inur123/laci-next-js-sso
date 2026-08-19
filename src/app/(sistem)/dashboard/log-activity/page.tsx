@@ -30,7 +30,7 @@ export default async function LogActivityPage({
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const role = session.user.role;

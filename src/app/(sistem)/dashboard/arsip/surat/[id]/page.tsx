@@ -24,7 +24,7 @@ async function DetailArsipSuratContent({
 }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const arsipSurat = await getArsipSuratById(id);
 

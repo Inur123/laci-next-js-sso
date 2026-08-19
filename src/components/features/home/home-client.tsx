@@ -24,11 +24,16 @@ import {
   Server,
   Wallet,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { getPublicStats } from "@/app/actions/dashboard-actions";
+import { authClient } from "@/lib/auth-client";
+import { requestLocation } from "@/lib/location";
+import { toast } from "sonner";
+import LoginClient from "@/components/features/auth/login-client";
 
 interface HomeClientProps {
   session: Session | null;
@@ -43,6 +48,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
   const [activeSection, setActiveSection] = useState("home");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [loggingInFrom, setLoggingInFrom] = useState<"desktop" | "mobile" | "hero" | null>(null);
 
   const router = useRouter();
 
@@ -141,6 +147,74 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
     }
   }, [router]);
 
+  useEffect(() => {
+    // Check permission state and prompt for geolocation on mount
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions
+        .query({ name: "geolocation" as PermissionName })
+        .then((result) => {
+          if (result.state !== "granted") {
+            requestLocation();
+          } else {
+            // Refresh cookie if already granted
+            navigator.geolocation.getCurrentPosition((pos) => {
+              const { latitude, longitude } = pos.coords;
+              document.cookie = `user_lat=${latitude}; path=/; max-age=86400; SameSite=Lax`;
+              document.cookie = `user_lng=${longitude}; path=/; max-age=86400; SameSite=Lax`;
+            });
+          }
+        })
+        .catch(() => {
+          requestLocation();
+        });
+    } else {
+      requestLocation();
+    }
+  }, []);
+
+  const handleSSOLogin = async (source: "desktop" | "mobile" | "hero") => {
+    // Cek izin real-time (bukan hanya dari sisa cookie kemarin/sebelumnya)
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        const result = await navigator.permissions.query({ name: "geolocation" as PermissionName });
+        if (result.state !== "granted") {
+          // Bersihkan cookie lama agar tidak bisa bypass
+          document.cookie = "user_lat=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "user_lng=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          
+          toast.error("Akses Masuk Ditolak: Anda wajib mengizinkan akses lokasi pada browser/perangkat Anda untuk masuk.");
+          requestLocation();
+          return;
+        }
+      } catch (e) {
+        // Fallback jika browser tidak mendukung query
+      }
+    }
+
+    const cookiesArr = document.cookie.split(";");
+    const hasLat = cookiesArr.some((c) => c.trim().startsWith("user_lat="));
+    const hasLng = cookiesArr.some((c) => c.trim().startsWith("user_lng="));
+
+    if (!hasLat || !hasLng) {
+      toast.error("Akses Masuk Ditolak: Anda wajib mengaktifkan dan mengizinkan akses lokasi pada browser/perangkat Anda untuk masuk.");
+      requestLocation();
+      return;
+    }
+
+    setLoggingInFrom(source);
+    try {
+      await authClient.signIn.oauth2({
+        providerId: "sso-ipnu",
+        callbackURL: `${window.location.origin}/dashboard?login=success`,
+        errorCallbackURL: `${window.location.origin}/?error=auth_error`,
+      });
+    } catch (error) {
+      console.error("SSO Login error:", error);
+      toast.error("Terjadi kesalahan saat menghubungi server SSO.");
+      setLoggingInFrom(null);
+    }
+  };
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
     if (!isMenuOpen) {
@@ -181,6 +255,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
 
   return (
     <div className="bg-white text-slate-900 antialiased font-sans flex flex-col min-h-screen">
+      <LoginClient />
       <div className="noise pointer-events-none fixed inset-0 -z-10"></div>
 
       {/* NAVBAR */}
@@ -261,12 +336,13 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
               </Link>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                <button
+                  onClick={() => handleSSOLogin("desktop")}
+                  disabled={loggingInFrom !== null}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
                 >
-                  Login
-                </Link>
+                  {loggingInFrom === "desktop" ? "Loading..." : "Login"}
+                </button>
                 <Link
                   href="https://pelajarnumagetan.id/register"
                   className="rounded-xl bg-[#16a34a] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(2,44,20,0.10)] hover:bg-[#15803d] focus:outline-none focus:ring-2 focus:ring-[#bbf7d0]"
@@ -331,13 +407,16 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
                 </Link>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleSSOLogin("mobile");
+                    }}
+                    disabled={loggingInFrom !== null}
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                   >
-                    Login
-                  </Link>
+                    {loggingInFrom === "mobile" ? "Loading..." : "Login"}
+                  </button>
                   <Link
                     href="https://pelajarnumagetan.id/register"
                     onClick={() => setIsMenuOpen(false)}
@@ -379,20 +458,38 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
                 </p>
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link
-                    href={session ? "/dashboard" : "/login"}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#16a34a] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(2,44,20,0.10)] hover:bg-[#15803d] focus:outline-none focus:ring-2 focus:ring-[#bbf7d0]"
-                  >
-                    <svg
-                      className="h-5 w-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
+                  {session ? (
+                    <Link
+                      href="/dashboard"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#16a34a] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(2,44,20,0.10)] hover:bg-[#15803d] focus:outline-none focus:ring-2 focus:ring-[#bbf7d0]"
                     >
-                      <path d="M8 5v14l11-7L8 5Z" fill="currentColor" />
-                    </svg>
-                    Mulai Sekarang
-                  </Link>
+                      Buka Dashboard
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => handleSSOLogin("hero")}
+                      disabled={loggingInFrom !== null}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#15803d] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(2,44,20,0.10)] hover:bg-[#166534] focus:outline-none focus:ring-2 focus:ring-[#bbf7d0] transition-all disabled:opacity-70 cursor-pointer"
+                    >
+                      {loggingInFrom === "hero" ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Menghubungkan...
+                        </>
+                      ) : (
+                        <>
+                          <Image
+                            src="/images/logo-sso.webp"
+                            alt="Logo SSO"
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                          />
+                          Masuk dengan IPNU IPPNU ID
+                        </>
+                      )}
+                    </button>
+                  )}
 
                   <a
                     href="#fitur"
@@ -1100,7 +1197,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href="/"
                   className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Login
@@ -1169,7 +1266,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               ) : (
                 <>
                   <Link
-                    href="/login"
+                    href="/"
                     onClick={closeMenu}
                     className="rounded-xl border border-slate-200 px-4 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50"
                   >

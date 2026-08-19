@@ -23,7 +23,7 @@ export default function PeriodePage() {
 
 async function PeriodeContent() {
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
   const userId = session?.user?.id;
 
   const periods = await prisma.periode.findMany({

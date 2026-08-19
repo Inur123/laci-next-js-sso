@@ -33,7 +33,7 @@ async function EditPresensiContent({
   const { id } = await params;
   const [data, session] = await Promise.all([getPresensiDetail(id), auth()]);
 
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
 
   if (!data) {
     notFound();

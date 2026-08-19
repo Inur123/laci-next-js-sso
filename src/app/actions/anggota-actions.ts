@@ -25,6 +25,7 @@ export async function getAnggotaList(
   periodeId?: string,
   sortKey?: string | null,
   sortDir?: "asc" | "desc",
+  status?: "PENDING" | "DITERIMA" | "DITOLAK",
 ) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -83,6 +84,10 @@ export async function getAnggotaList(
         whereClause.periodeId = finalPeriodeId;
       }
     }
+  }
+
+  if (status) {
+    whereClause.status = status;
   }
 
   // Apakah pengurutan memerlukan dekripsi atau relasi?
@@ -305,223 +310,7 @@ export async function getAnggotaById(id: string) {
   };
 }
 
-/**
- * Create New Member
- */
-export async function createAnggota(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Belum terautentikasi" };
 
-  const periodeAktif = await prisma.periode.findFirst({
-    where: { userId: session.user.id, isActive: true },
-  });
-
-  if (!periodeAktif)
-    return { error: "Silakan aktifkan periode terlebih dahulu." };
-
-  const namaLengkap = formData.get("namaLengkap") as string;
-  const jenisKelamin = formData.get("jenisKelamin") as JenisKelamin;
-
-  if (!namaLengkap || !namaLengkap.trim())
-    return { error: "Nama Lengkap wajib diisi" };
-
-  let photoPath: string | null = null;
-  const imageFile = formData.get("foto") as File | null;
-  if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-    const bytes = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    photoPath = `anggota/${generateEncryptedFilename(imageFile.name)}`;
-    await uploadToR2(encryptFile(buffer), photoPath, imageFile.type);
-  }
-
-  try {
-    const rawPerkaderans = formData.get("perkaderans") as string;
-    const rawPendidikans = formData.get("pendidikans") as string;
-    const anggota = await prisma.anggota.create({
-      data: {
-        userId: session.user.id,
-        periodeId: periodeAktif.id,
-        namaLengkap: encryptText(namaLengkap),
-        jenisKelamin,
-        foto: photoPath,
-        nik: formData.get("nik")
-          ? encryptText(formData.get("nik") as string)
-          : null,
-        nia: formData.get("nia")
-          ? encryptText(formData.get("nia") as string)
-          : null,
-        email: (formData.get("email") as string) || null,
-        tempatLahir: formData.get("tempatLahir")
-          ? encryptText(formData.get("tempatLahir") as string)
-          : null,
-        tanggalLahir: formData.get("tanggalLahir")
-          ? new Date(formData.get("tanggalLahir") as string)
-          : null,
-        alamatLengkap: formData.get("alamatLengkap")
-          ? encryptText(formData.get("alamatLengkap") as string)
-          : null,
-        noHp: formData.get("noHp")
-          ? encryptText(formData.get("noHp") as string)
-          : null,
-        hobi: formData.get("hobi")
-          ? encryptText(formData.get("hobi") as string)
-          : null,
-        jabatan: formData.get("jabatan")
-          ? encryptText(formData.get("jabatan") as string)
-          : null,
-        noRfid: formData.get("noRfid")
-          ? encryptText(formData.get("noRfid") as string)
-          : null,
-        pekerjaan: formData.get("pekerjaan")
-          ? encryptText(formData.get("pekerjaan") as string)
-          : null,
-        jenjangPendidikan:
-          (formData.get("jenjangPendidikan") as string) || null,
-        namaInstansiPendidikan: formData.get("namaInstansiPendidikan")
-          ? encryptText(formData.get("namaInstansiPendidikan") as string)
-          : null,
-        perkaderans: {
-          create: rawPerkaderans
-            ? JSON.parse(rawPerkaderans).map((p: any) => ({
-                namaPerkaderan: encryptText(p.namaPerkaderan),
-                tanggal: p.tanggal ? new Date(p.tanggal) : new Date(),
-                tempat: encryptText(p.tempat || "-"),
-              }))
-            : [],
-        },
-        pendidikans: {
-          create: rawPendidikans
-            ? JSON.parse(rawPendidikans).map((p: any) => ({
-                jenjang: p.jenjang,
-                namaSekolah: encryptText(p.namaSekolah || "-"),
-              }))
-            : [],
-        },
-      },
-    });
-
-    createLog(
-      "CREATE",
-      "ANGGOTA",
-      `Membuat data anggota: ${namaLengkap}`,
-      anggota.id,
-    );
-    revalidatePath("/dashboard", "layout");
-    revalidatePath("/dashboard/anggota", "page");
-    return { success: "Data anggota berhasil disimpan!" };
-  } catch (error) {
-    console.error(error);
-    return { error: "Gagal menyimpan data anggota." };
-  }
-}
-
-/**
- * Update Existing Member
- */
-export async function updateAnggota(id: string, formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Belum terautentikasi" };
-
-  try {
-    const existing = await prisma.anggota.findUnique({ where: { id } });
-    if (!existing) return { error: "Data tidak ditemukan" };
-
-    const namaLengkap = formData.get("namaLengkap") as string;
-    let photoPath = existing.foto;
-    const imageFile = formData.get("foto") as File | null;
-
-    if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-      if (existing.foto) await deleteFromR2(existing.foto).catch(() => {});
-      photoPath = `anggota/${generateEncryptedFilename(imageFile.name)}`;
-      await uploadToR2(
-        encryptFile(Buffer.from(await imageFile.arrayBuffer())),
-        photoPath,
-        imageFile.type,
-      );
-    }
-
-    const rawPerkaderans = formData.get("perkaderans") as string;
-    const rawPendidikans = formData.get("pendidikans") as string;
-
-    await prisma.anggota.update({
-      where: { id },
-      data: {
-        namaLengkap: encryptText(namaLengkap),
-        jenisKelamin: formData.get("jenisKelamin") as JenisKelamin,
-        foto: photoPath,
-        nik: formData.get("nik")
-          ? encryptText(formData.get("nik") as string)
-          : null,
-        nia: formData.get("nia")
-          ? encryptText(formData.get("nia") as string)
-          : null,
-        email: (formData.get("email") as string) || null,
-        tempatLahir: formData.get("tempatLahir")
-          ? encryptText(formData.get("tempatLahir") as string)
-          : null,
-        tanggalLahir: formData.get("tanggalLahir")
-          ? new Date(formData.get("tanggalLahir") as string)
-          : null,
-        alamatLengkap: formData.get("alamatLengkap")
-          ? encryptText(formData.get("alamatLengkap") as string)
-          : null,
-        noHp: formData.get("noHp")
-          ? encryptText(formData.get("noHp") as string)
-          : null,
-        hobi: formData.get("hobi")
-          ? encryptText(formData.get("hobi") as string)
-          : null,
-        jabatan: formData.get("jabatan")
-          ? encryptText(formData.get("jabatan") as string)
-          : null,
-        noRfid: formData.get("noRfid")
-          ? encryptText(formData.get("noRfid") as string)
-          : null,
-        pekerjaan: formData.get("pekerjaan")
-          ? encryptText(formData.get("pekerjaan") as string)
-          : null,
-        jenjangPendidikan:
-          (formData.get("jenjangPendidikan") as string) || null,
-        namaInstansiPendidikan: formData.get("namaInstansiPendidikan")
-          ? encryptText(formData.get("namaInstansiPendidikan") as string)
-          : null,
-        perkaderans: {
-          deleteMany: {},
-          create: rawPerkaderans
-            ? JSON.parse(rawPerkaderans).map((p: any) => ({
-                namaPerkaderan: encryptText(p.namaPerkaderan),
-                tanggal: p.tanggal ? new Date(p.tanggal) : new Date(),
-                tempat: encryptText(p.tempat || "-"),
-              }))
-            : [],
-        },
-        pendidikans: {
-          deleteMany: {},
-          create: rawPendidikans
-            ? JSON.parse(rawPendidikans).map((p: any) => ({
-                jenjang: p.jenjang,
-                namaSekolah: encryptText(p.namaSekolah || "-"),
-              }))
-            : [],
-        },
-      },
-    });
-
-    createLog(
-      "UPDATE",
-      "ANGGOTA",
-      `Mengupdate data anggota: ${namaLengkap}`,
-      id,
-    );
-    revalidatePath("/dashboard", "layout");
-    revalidatePath("/dashboard/anggota", "page");
-    revalidatePath(`/dashboard/anggota/${id}`, "page");
-    return { success: "Data anggota berhasil diperbarui!" };
-  } catch (error) {
-    console.error(error);
-    return { error: "Gagal memperbarui data anggota" };
-  }
-}
 
 /**
  * Delete Member
@@ -545,6 +334,48 @@ export async function deleteAnggota(id: string) {
 }
 
 /**
+ * Verifikasi Anggota
+ */
+export async function verifikasiAnggota(
+  id: string,
+  status: "DITERIMA" | "DITOLAK",
+  alasanPenolakan?: string,
+) {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "Belum terautentikasi" };
+
+  try {
+    const existing = await prisma.anggota.findUnique({ where: { id } });
+    if (!existing) return { error: "Data anggota tidak ditemukan" };
+
+    await prisma.anggota.update({
+      where: { id },
+      data: {
+        status,
+        alasanPenolakan: status === "DITOLAK" ? alasanPenolakan : null,
+      },
+    });
+
+    const actionText = status === "DITERIMA" ? "Menerima" : "Menolak";
+    const nama = decryptText(existing.namaLengkap);
+    
+    createLog(
+      status === "DITERIMA" ? "APPROVE" : "REJECT",
+      "ANGGOTA",
+      `${actionText} pengajuan anggota: ${nama}`,
+      id,
+    );
+
+    revalidatePath("/dashboard", "layout");
+    revalidatePath("/dashboard/anggota", "page");
+    return { success: `Berhasil ${actionText.toLowerCase()} anggota!` };
+  } catch (error) {
+    console.error("Gagal verifikasi anggota", error);
+    return { error: "Terjadi kesalahan sistem saat memverifikasi" };
+  }
+}
+
+/**
  * Stats for Member Module
  */
 export async function getAnggotaStats(userId?: string) {
@@ -555,7 +386,7 @@ export async function getAnggotaStats(userId?: string) {
     select: { role: true },
   });
   const isCabang = user?.role === "SEKRETARIS_CABANG";
-  let where: Prisma.AnggotaWhereInput = {};
+  let where: Prisma.AnggotaWhereInput = { status: "DITERIMA" };
   // Get active or selected view periode
   const cookieStore = await cookies();
   const viewPeriodeId = cookieStore.get("view_periode_id")?.value;
@@ -630,79 +461,4 @@ export async function getAnggotaStats(userId?: string) {
   return { total, lakiLaki, perempuan, makesta, lakmud, latin, latpel, lakut };
 }
 
-/**
- * Copy anggota to current period
- */
-export async function copyAnggotaToCurrentPeriode(anggotaIds: string[]) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Belum terautentikasi" };
 
-  const periodeAktif = await prisma.periode.findFirst({
-    where: { userId: session.user.id, isActive: true },
-  });
-
-  if (!periodeAktif)
-    return { error: "Silakan aktifkan periode tujuan terlebih dahulu." };
-
-  try {
-    const sourceAnggota = await prisma.anggota.findMany({
-      where: { id: { in: anggotaIds } },
-      include: { perkaderans: true, pendidikans: true },
-    });
-
-    const createdCount = await prisma.$transaction(async (tx) => {
-      let count = 0;
-      for (const item of sourceAnggota) {
-        if (item.periodeId === periodeAktif.id) continue;
-        await tx.anggota.create({
-          data: {
-            userId: session.user.id,
-            periodeId: periodeAktif.id,
-            namaLengkap: item.namaLengkap,
-            nik: item.nik,
-            nia: item.nia,
-            email: item.email,
-            foto: item.foto,
-            jenisKelamin: item.jenisKelamin,
-            tempatLahir: item.tempatLahir,
-            tanggalLahir: item.tanggalLahir,
-            alamatLengkap: item.alamatLengkap,
-            noHp: item.noHp,
-            hobi: item.hobi,
-            jabatan: item.jabatan,
-            noRfid: item.noRfid,
-            pekerjaan: item.pekerjaan,
-            jenjangPendidikan: item.jenjangPendidikan,
-            namaInstansiPendidikan: item.namaInstansiPendidikan,
-            perkaderans: {
-              create: item.perkaderans.map((p) => ({
-                namaPerkaderan: p.namaPerkaderan,
-                tanggal: p.tanggal,
-                tempat: p.tempat,
-              })),
-            },
-            pendidikans: {
-              create: item.pendidikans.map((p) => ({
-                jenjang: p.jenjang,
-                namaSekolah: p.namaSekolah,
-              })),
-            },
-          },
-        });
-        count++;
-      }
-      return count;
-    });
-
-    createLog(
-      "CREATE",
-      "ANGGOTA",
-      `Menyalin ${createdCount} anggota ke periode: ${periodeAktif.nama}`,
-    );
-    revalidatePath("/dashboard", "layout");
-    revalidatePath("/dashboard/anggota", "page");
-    return { success: `${createdCount} anggota berhasil disalin!` };
-  } catch (error) {
-    return { error: "Gagal menyalin data anggota." };
-  }
-}

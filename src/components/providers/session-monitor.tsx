@@ -28,7 +28,7 @@ export function SessionMonitor() {
           id: "session-expired",
         });
 
-        router.push("/login?error=session_expired");
+        router.push("/?error=session_expired");
       }
     }
 

@@ -27,7 +27,7 @@ async function EditBerkasPimpinanContent({
   params: Promise<{ id: string }>;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user) redirect("/");
 
   const { id } = await params;
   const berkas = await getBerkasPimpinanById(id);

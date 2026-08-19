@@ -27,7 +27,7 @@ export default async function KegiatanPage({
 }) {
   const session = await auth();
 
-  if (!session) redirect("/login");
+  if (!session) redirect("/");
 
   // Access control: Only SEKRETARIS_CABANG
   if (session.user.role !== "SEKRETARIS_CABANG") {
