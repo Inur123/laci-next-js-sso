@@ -1,68 +1,41 @@
-# Laci Digital
+<div align="center">
+  <h1>🗄️ Laci IPNU IPPNU</h1>
+  <p><strong>Sistem Administrasi Cerdas & Single Sign-On (SSO) Terpusat</strong></p>
+</div>
 
-Laci Digital terdiri dari Next.js frontend, Go backend, dan klien Flutter native. UI web, SSO existing, PostgreSQL existing, schema/ID/data, enkripsi AES-256-CBC, R2, SMTP, realtime, Excel, dan workflow organisasi tetap dipertahankan. Flutter memakai API dan aturan bisnis yang sama dengan web, dengan presentasi yang disesuaikan untuk layar mobile.
+---
 
-```text
-Browser -> frontend/ (Next.js UI + Go API client)
-Mobile  -> mobile/   (Flutter UI + secure native session)
-                   -> backend/ (Go REST API + OIDC/session)
-                   -> existing SSO
-                   -> PostgreSQL / R2 / SMTP
-```
+## 📖 Tentang Aplikasi
+**Laci** adalah ekosistem aplikasi terpusat yang dirancang khusus untuk memodernisasi dan mendigitalkan seluruh tata kelola administrasi organisasi IPNU (Ikatan Pelajar Nahdlatul Ulama) dan IPPNU (Ikatan Pelajar Putri Nahdlatul Ulama). 
 
-## Struktur
+Fungsi utama Laci adalah sebagai **Single Sign-On (SSO) Identity Provider**, di mana satu akun Laci dapat digunakan oleh pimpinan (Cabang, PAC, Ranting) maupun anggota untuk masuk (login) dan terhubung ke berbagai sistem atau aplikasi turunan lainnya (seperti Sistem Anggota, Sistem Presensi, dll) tanpa perlu mendaftar berulang kali.
 
-- `frontend/`: Next.js 15, React UI existing, route callback penghubung tanpa secret, dan adapter tipis ke Go.
-- `backend/`: Go API, OIDC login/callback/session, authorization, business logic, PostgreSQL, crypto/file, email, SSE, backup, cron, dan public integration API.
-- `mobile/`: Flutter untuk Android/iOS, native splash, browser-system SSO + PKCE, secure storage, dashboard role-aware, dan seluruh fitur internal sesuai hak akses PAC/Cabang.
-- `mobile/docs/`: kontrak API dan matriks parity FE/BE/mobile.
-- `MIGRATION_PLAN.md`: audit awal, keputusan, hasil implementasi, dan checklist verifikasi.
+## 🏗️ Arsitektur Sistem
+Sejak versi `v0.3.0`, Laci telah bertransformasi dari sistem monolitik menjadi arsitektur modern yang terpisah (*Decoupled Architecture*) untuk menjamin performa, keamanan, dan skalabilitas:
 
-## Menjalankan lokal
+- ⚙️ **Backend (Golang):** Berperan sebagai otak (REST API) yang memproses seluruh logika bisnis, transaksi *database* (melalui Prisma), dan sistem otentikasi.
+- 💻 **Frontend Web (Next.js):** Menyajikan antarmuka (*User Interface*) berbasis web modern yang cepat dan responsif untuk para Admin/Pimpinan.
+- 📱 **Mobile App (Flutter / React Native - *Preparation*):** Sistem telah didesain dengan modul `mobile/` dan API khusus yang siap diintegrasikan dengan aplikasi ponsel pintar (Android/iOS) di masa mendatang.
 
-Prasyarat web/backend: Node.js 20+, Go 1.26+, PostgreSQL existing, dan `pg_dump` untuk backup. Mobile memerlukan Flutter 3.24+/Dart 3.5+, Android SDK, serta Xcode/CocoaPods untuk iOS.
+## ✨ Fitur Utama
 
-```bash
-cd backend
-cp .env.example .env
-go run ./cmd/api
-```
+### 1. 🔐 Sistem Single Sign-On (SSO) Terpusat
+Menggunakan standar otentikasi modern (OAuth2/OIDC), Laci bertindak sebagai gerbang utama. Pengurus hanya perlu satu kredensial untuk mengakses berbagai portal aplikasi IPNU-IPPNU secara aman.
 
-Backend otomatis membaca `backend/.env` dan berjalan pada `http://localhost:8080` secara default.
-Pastikan `MOBILE_REDIRECT_URIS=lacidigital://oauth/callback` diaktifkan dan jalankan migration additive `20260824000000_add_mobile_auth_bridge` sebelum memakai login mobile.
+### 2. 🗺️ Manajemen Struktur Wilayah
+Sistem hierarki wilayah yang lengkap dan berjenjang. Pimpinan dapat mengelola, memantau, dan menambahkan struktur di bawahnya:
+- **Pimpinan Cabang (PC)**
+- **Pimpinan Anak Cabang (PAC)**
+- **Pimpinan Ranting (PR) / Pimpinan Komisariat (PK)**
 
-```bash
-cd frontend
-cp .env.example .env.local
-npm ci
-npm run dev
-```
+### 3. 👥 Manajemen & Verifikasi Anggota
+Mengelola *database* anggota secara terpusat dengan sistem verifikasi berjenjang. Setiap pendaftaran anggota baru melalui sistem eksternal akan masuk ke Laci dalam status *PENDING* untuk kemudian diverifikasi (Diterima/Ditolak) oleh pimpinan yang berwenang.
 
-Frontend berjalan pada `http://localhost:3000` dan hanya membutuhkan alamat Go API serta URL profil SSO. Database, SSO client secret, session, enkripsi, R2, SMTP, API key, dan cron hanya berada di backend.
+### 4. 🪝 Integrasi Webhook Real-time
+Laci dilengkapi dengan sistem *Webhook* cerdas. Setiap kali ada perubahan penting (misalnya: status anggota diverifikasi oleh Cabang), Laci akan secara otomatis (*real-time*) menembakkan data JSON ke *endpoint* sistem eksternal (seperti Web Sistem Anggota) agar data selalu sinkron di seluruh ekosistem aplikasi.
 
-```bash
-cd mobile
-cp .env.example .env
-flutter pub get
-flutter run
-```
+### 5. 📂 Pengarsipan & Pengajuan Berkas (E-Filing)
+Sistem penyimpanan dokumen digital cerdas. Menggantikan proses manual pengajuan Surat Pengesahan (SP) dan pengarsipan berkas pimpinan menjadi sistem digital yang aman, terlacak, dan mudah diunduh kapan saja.
 
-Semua URL mobile diatur hanya melalui `mobile/.env`. Untuk development Android
-Emulator dengan URL `localhost`, aktifkan `adb reverse tcp:8080 tcp:8080` dan
-`adb reverse tcp:3000 tcp:3000`; untuk build staging/production, ganti origin di
-`.env` sebelum rebuild. Panduan setup, deep link, build, signing, dan release
-lengkap ada di [`mobile/README.md`](mobile/README.md).
-
-## Verifikasi
-
-```bash
-cd backend && go test ./... && go vet ./...
-cd frontend && npm run lint && npm run typecheck && npm run build
-cd mobile && flutter analyze && flutter test
-```
-
-Health check: `GET /health/live` dan `GET /health/ready`. OpenAPI tersedia di `GET /openapi.json` dan UI-nya di frontend `/api-docs`.
-
-Public compatibility endpoints berada di `/api/v1/public/*`; sinkronisasi bot memakai `GET /api/v1/public/data` dengan header `X-API-Key`. Endpoint aplikasi menerima cookie session HttpOnly milik Go untuk web atau opaque bearer session `laci_mob_*` untuk Flutter. Secret SSO, R2, SMTP, cron, dan API key integrasi tidak pernah ditanam ke aplikasi mobile.
-
-Migration mobile bersifat additive: satu tabel transaksi OAuth berumur pendek ditambahkan. Tidak ada tabel/domain existing yang dihapus atau diubah secara destruktif.
+---
+*Dibangun dengan ❤️ untuk kemajuan pelajar Nahdlatul Ulama.*
