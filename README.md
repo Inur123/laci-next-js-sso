@@ -47,4 +47,10 @@ Laci dilengkapi dengan sistem *Webhook* cerdas. Setiap kali ada perubahan pentin
 Sistem penyimpanan dokumen digital cerdas. Menggantikan proses manual pengajuan Surat Pengesahan (SP) dan pengarsipan berkas pimpinan menjadi sistem digital yang aman, terlacak, dan mudah diunduh kapan saja.
 
 ---
+
+> [!NOTE]
+> **Catatan Sejarah Evolusi Proyek:**
+> Repositori ini (`laci-next-js-sso`) adalah generasi kedua dari sistem Laci Digital. Pada versi `v0.1.0` hingga `v0.2.0` sebelumnya, proyek ini dibangun menggunakan arsitektur monolitik murni (Fullstack Next.js) yang dapat Anda lihat pada repositori *legacy*: [Inur123/laci-next-js](https://github.com/Inur123/laci-next-js). Sejak `v0.3.0`, sistem dirombak dan dipisahkan menjadi struktur *microservice-ready* (Go + Next.js + Flutter) seperti yang Anda lihat sekarang.
+
+---
 *Dibangun dengan ❤️ untuk kemajuan pelajar Nahdlatul Ulama.*

@@ -1,5 +1,11 @@
 # Release v0.3.0: Pemisahan Arsitektur (Backend-Frontend Decoupling) & Persiapan Mobile
 
+> [!NOTE]
+> **Catatan Sejarah Proyek (Mengapa Rilis Pertama Langsung v0.3.0?):**
+> Jika Anda melihat ini sebagai satu-satunya rilis di repositori ini, hal tersebut sangat wajar! Pada versi `v0.1.0` dan `v0.2.0` sebelumnya, keseluruhan proyek ini masih menggunakan arsitektur **Fullstack Next.js (Monolitik)** murni, yang dikembangkan pada repositori terpisah: [Inur123/laci-next-js](https://github.com/Inur123/laci-next-js).
+> 
+> Mulai dari versi **v0.3.0** ini, model arsitektur telah dirombak total dan dipisah menjadi Backend (Golang) dan Frontend (Next.js). Perubahan masif ini dipindahkan ke repositori baru (`laci-next-js-sso`) sebagai titik tolak awal untuk mengembangkan ekosistem yang lebih besar, terutama untuk persiapan integrasi dengan aplikasi *Mobile*.
+
 Rilis ini menandai transisi besar dari arsitektur monolitik Next.js (Fullstack) sebelumnya menjadi arsitektur terpisah yang lebih terukur, aman, dan siap untuk diintegrasikan dengan aplikasi *mobile*.
 
 ## 🚀 Fitur Baru (New Features)
