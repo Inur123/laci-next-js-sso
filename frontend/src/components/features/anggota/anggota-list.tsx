@@ -22,11 +22,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Eye,
-  Pencil,
-  Trash2,
+  Copy,
   Search,
   User as UserIcon,
   RefreshCcw,
@@ -34,15 +32,15 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { deleteAnggota, getAnggotaList } from "@/app/actions/anggota-actions";
+import { getAnggotaList } from "@/app/actions/anggota-actions";
 import { logExport } from "@/app/actions/log-activity-actions";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, capitalizeName } from "@/lib/utils";
-import { Check, X, FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet } from "lucide-react";
 import XLSX from "xlsx-js-style";
-import { VerifikasiDialog } from "./verifikasi-dialog";
+import { CopyAnggotaDialog } from "./copy-anggota-dialog";
 
 type AnggotaItem = {
   id: string;
@@ -85,7 +83,6 @@ type SortKey =
 type SortDir = "asc" | "desc";
 
 import { UserFilterSelect } from "@/components/shared/user-filter-select";
-import { ConfirmModal } from "@/components/shared/confirm-modal";
 
 export function AnggotaList({
   anggotaList: initialAnggotaList,
@@ -99,6 +96,8 @@ export function AnggotaList({
   initialSortKey = "namaLengkap",
   initialSortDir = "asc",
   initialStatus = "PENDING",
+  periods = [],
+  currentPeriodId,
 }: {
   anggotaList: AnggotaItem[];
   userRole: string;
@@ -111,10 +110,9 @@ export function AnggotaList({
   initialSortKey?: string;
   initialSortDir?: string;
   initialStatus?: "PENDING" | "DITERIMA" | "DITOLAK";
+  periods?: { id: string; nama: string; isActive?: boolean }[];
+  currentPeriodId?: string;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   // Local data state
   const [data, setData] = useState<AnggotaItem[]>(initialAnggotaList);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
@@ -140,9 +138,8 @@ export function AnggotaList({
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [selectedUser, setSelectedUser] = useState(initialSelectedUser);
   const [activeTab, setActiveTab] = useState(initialStatus || "PENDING");
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
 
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [optimisticHiddenIds, setOptimisticHiddenIds] = useState<string[]>([]);
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sort state
@@ -276,15 +273,6 @@ export function AnggotaList({
     setSelectedUser(value);
     setCurrentPage(1);
 
-    const params = new URLSearchParams(searchParams.toString());
-    if (value === "ALL") {
-      params.delete("userId");
-    } else {
-      params.set("userId", value);
-    }
-    params.set("page", "1");
-    router.push(`?${params.toString()}`, { scroll: false });
-
     fetchData(searchTerm, 1, value, sortKey, sortDir, activeTab);
   };
 
@@ -293,12 +281,6 @@ export function AnggotaList({
     setSelectedUser("ALL");
     setCurrentPage(1);
 
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("userId");
-    params.delete("q");
-    params.set("page", "1");
-    router.push(`?${params.toString()}`, { scroll: false });
-
     fetchData("", 1, "ALL", sortKey, sortDir, activeTab);
   };
 
@@ -306,23 +288,6 @@ export function AnggotaList({
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     fetchData(searchTerm, page, selectedUser, sortKey, sortDir, activeTab);
-  };
-
-  const handleDelete = async () => {
-    if (!confirmDeleteId) return;
-    const id = confirmDeleteId;
-    setConfirmDeleteId(null);
-    setOptimisticHiddenIds((prev) => [...prev, id]);
-
-    const result = await deleteAnggota(id);
-
-    if (result.error) {
-      setOptimisticHiddenIds((prev) => prev.filter((pid) => pid !== id));
-      toast.error(result.error);
-    } else {
-      toast.success("Anggota berhasil dihapus");
-      fetchData(searchTerm, currentPage, selectedUser, sortKey, sortDir, activeTab);
-    }
   };
 
   const getInitials = (name: string) => {
@@ -571,6 +536,16 @@ export function AnggotaList({
 
         {/* Actions Section */}
         <div className="grid grid-cols-2 gap-2 w-full md:flex md:w-auto md:items-center md:justify-end md:gap-3 lg:justify-start">
+          {periods.length > 1 && (
+            <Button
+              variant="outline"
+              className="h-9 w-full md:w-auto px-4 text-sm bg-white border-slate-200 shadow-sm whitespace-nowrap"
+              onClick={() => setCopyDialogOpen(true)}
+            >
+              <Copy className="mr-2 h-3.5 w-3.5 text-primary" />
+              Masukkan Periode
+            </Button>
+          )}
           <Button
             variant="outline"
             className="h-9 w-full md:w-auto px-4 text-sm bg-white border-slate-200 shadow-sm whitespace-nowrap text-slate-600 hover:text-slate-900"
@@ -604,11 +579,22 @@ export function AnggotaList({
         </div>
       </div>
 
+      <CopyAnggotaDialog
+        open={copyDialogOpen}
+        onOpenChange={setCopyDialogOpen}
+        periods={periods}
+        currentPeriodId={currentPeriodId}
+        initialMembers={data}
+        onCompleted={() =>
+          fetchData(searchTerm, currentPage, selectedUser, sortKey, sortDir, activeTab)
+        }
+      />
+
       <div className="relative">
         <div className="rounded-md border">
-          <div className="relative max-h-[600px] overflow-auto">
-            <Table className="min-w-[900px]">
-              <TableHeader className="sticky top-0 bg-white z-10 border-b">
+          <div className="overflow-x-auto">
+            <Table className="w-full table-fixed">
+              <TableHeader className="sticky top-0 bg-white z-10">
                 <TableRow>
                   <TableHead className="w-[50px] bg-slate-50/40 text-center whitespace-nowrap text-slate-500 font-semibold h-11">
                     No
@@ -664,9 +650,7 @@ export function AnggotaList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.filter(
-                  (item) => !optimisticHiddenIds.includes(item.id),
-                ).length === 0 ? (
+                {sortedData.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={7}
@@ -678,9 +662,7 @@ export function AnggotaList({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sortedData
-                    .filter((item) => !optimisticHiddenIds.includes(item.id))
-                    .map((item, index) => (
+                  sortedData.map((item, index) => (
                       <TableRow
                         key={item.id}
                         className="hover:bg-slate-50/50 transition-colors"
@@ -742,48 +724,20 @@ export function AnggotaList({
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {activeTab === "PENDING" ? (
-                              <VerifikasiDialog 
-                                anggota={item} 
-                                onVerified={() => fetchData(searchTerm, currentPage, selectedUser, sortKey, sortDir, activeTab)} 
-                              />
-                            ) : (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0 border-slate-200 text-slate-500 hover:text-slate-900 transition-colors"
-                                  asChild
-                                  title="Lihat Detail"
-                                >
-                                  <Link href={`/dashboard/anggota/${item.id}`}>
-                                    <Eye className="w-4 h-4" />
-                                  </Link>
-                                </Button>
-                                {activeTab === "DITERIMA" && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 w-8 p-0 border-slate-200 text-slate-500 hover:text-slate-900 transition-colors"
-                                    asChild
-                                    title="Edit"
-                                  >
-                                    <Link href={`/dashboard/anggota/${item.id}/edit`}>
-                                      <Pencil className="w-4 h-4" />
-                                    </Link>
-                                  </Button>
-                                )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0 border-slate-200 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                  onClick={() => setConfirmDeleteId(item.id)}
-                                  title="Hapus"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0"
+                              asChild
+                              title="Lihat detail anggota"
+                            >
+                              <Link
+                                href={`/dashboard/anggota/${item.id}`}
+                                aria-label="Lihat detail anggota"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Link>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -886,16 +840,6 @@ export function AnggotaList({
           </div>
         </div>
       </div>
-
-        <ConfirmModal
-          isOpen={confirmDeleteId !== null}
-          onClose={() => setConfirmDeleteId(null)}
-          onConfirm={handleDelete}
-          title="Hapus Anggota"
-          description="Apakah Anda yakin ingin menghapus data anggota ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Hapus"
-          cancelText="Batal"
-        />
     </div>
   );
 }

@@ -1,2 +1,18 @@
-export async function POST(request:Request){const authorization=request.headers.get("authorization")||"";const r=await fetch(`${process.env.GO_API_URL||"http://localhost:8080"}/api/v1/cron/backups`,{method:"POST",headers:{Authorization:authorization},cache:"no-store"});return new Response(r.body,{status:r.status,headers:{"Content-Type":r.headers.get("content-type")||"application/json"}})}
-export const GET=POST;
+export async function POST(request: Request) {
+  const authorization = request.headers.get("authorization") || "";
+  const r = await fetch(
+    `${process.env.GO_API_URL || "http://localhost:8080"}/api/v1/cron/backups`,
+    {
+      method: "POST",
+      headers: { Authorization: authorization },
+      cache: "no-store",
+    },
+  );
+  return new Response(r.body, {
+    status: r.status,
+    headers: {
+      "Content-Type": r.headers.get("content-type") || "application/json",
+    },
+  });
+}
+export const GET = POST;

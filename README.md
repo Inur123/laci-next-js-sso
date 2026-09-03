@@ -1,90 +1,68 @@
-# 🗄️ Laci Digital - PC IPNU IPPNU Magetan
+# Laci Digital
 
-<div align="center">
-  <img src="public/images/readme-preview.webp" alt="Laci Digital Preview" width="100%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-  
-  <p align="center">
-    <img src="https://img.shields.io/badge/Versi%20Sistem-v1.0.0-22c55e?style=for-the-badge" alt="Versi Sistem">
-  </p>
-  
-  <p align="center">
-    <strong>Sistem Informasi Manajemen Terintegrasi untuk PC IPNU IPPNU Kabupaten Magetan.</strong>
-    <br />
-    <em>Kelola Organisasi Lebih Modern, Efisien, dan Transparan.</em>
-  </p>
-</div>
+Laci Digital terdiri dari Next.js frontend, Go backend, dan klien Flutter native. UI web, SSO existing, PostgreSQL existing, schema/ID/data, enkripsi AES-256-CBC, R2, SMTP, realtime, Excel, dan workflow organisasi tetap dipertahankan. Flutter memakai API dan aturan bisnis yang sama dengan web, dengan presentasi yang disesuaikan untuk layar mobile.
 
----
+```text
+Browser -> frontend/ (Next.js UI + Go API client)
+Mobile  -> mobile/   (Flutter UI + secure native session)
+                   -> backend/ (Go REST API + OIDC/session)
+                   -> existing SSO
+                   -> PostgreSQL / R2 / SMTP
+```
 
-## 🌟 Tentang Proyek
+## Struktur
 
-**Laci Digital** adalah solusi manajemen digital yang dikembangkan untuk mendigitalisasi proses administrasi dan manajemen data di lingkungan **PC IPNU IPPNU Kabupaten Magetan**. Fokus utama platform ini adalah menyatukan data anggota, mempercepat alur surat-menyurat, serta memberikan insight keaktifan organisasi secara real-time.
+- `frontend/`: Next.js 15, React UI existing, route callback penghubung tanpa secret, dan adapter tipis ke Go.
+- `backend/`: Go API, OIDC login/callback/session, authorization, business logic, PostgreSQL, crypto/file, email, SSE, backup, cron, dan public integration API.
+- `mobile/`: Flutter untuk Android/iOS, native splash, browser-system SSO + PKCE, secure storage, dashboard role-aware, dan seluruh fitur internal sesuai hak akses PAC/Cabang.
+- `mobile/docs/`: kontrak API dan matriks parity FE/BE/mobile.
+- `MIGRATION_PLAN.md`: audit awal, keputusan, hasil implementasi, dan checklist verifikasi.
 
-## ️ Fitur Unggulan
+## Menjalankan lokal
 
-### 1. 📊 Dashboard & Monitoring
+Prasyarat web/backend: Node.js 20+, Go 1.26+, PostgreSQL existing, dan `pg_dump` untuk backup. Mobile memerlukan Flutter 3.24+/Dart 3.5+, Android SDK, serta Xcode/CocoaPods untuk iOS.
 
-- **Monitoring Cabang**: Pantau statistik anggota, PAC aktif, dan verifikasi tertunda secara real-time.
-- **Top 5 Leaderboard**: Klasemen otomatis PAC paling aktif berdasarkan skor aktivitas organisasi.
-- **Visualisasi Data**: Grafik interaktif untuk distribusi data dan tren perkembangan.
+```bash
+cd backend
+cp .env.example .env
+go run ./cmd/api
+```
 
-### 3. 🛡️ Keamanan & Autentikasi Modern
+Backend otomatis membaca `backend/.env` dan berjalan pada `http://localhost:8080` secara default.
+Pastikan `MOBILE_REDIRECT_URIS=lacidigital://oauth/callback` diaktifkan dan jalankan migration additive `20260824000000_add_mobile_auth_bridge` sebelum memakai login mobile.
 
-- **Multi-Auth System**: Mendukung login tradisional (Email & Password) dan shortcut login via **Google Social Login**.
-- **Registration-First Policy**: Keamanan tinggi di mana login Google hanya diizinkan bagi user yang sudah terdaftar secara manual oleh admin.
-- **Better Auth Integration**: Manajemen sesi tingkat lanjut dengan proteksi CSRF dan penanganan token yang aman.
+```bash
+cd frontend
+cp .env.example .env.local
+npm ci
+npm run dev
+```
 
-### 4. 👥 Manajemen Keanggotaan
+Frontend berjalan pada `http://localhost:3000` dan hanya membutuhkan alamat Go API serta URL profil SSO. Database, SSO client secret, session, enkripsi, R2, SMTP, API key, dan cron hanya berada di backend.
 
-- **Data Terpusat**: Database anggota terstruktur per masa khidmah (periode).
-- **Profil Mandiri**: Setiap user memiliki kontrol penuh atas data profil dan pengaturan keamanan.
-- **Verifikasi Email**: Memastikan autentisitas user untuk melindungi data sensitif melalui OTP.
+```bash
+cd mobile
+cp .env.example .env
+flutter pub get
+flutter run
+```
 
-### 5. 📂 Sistem Arsip & Administrasi
+Semua URL mobile diatur hanya melalui `mobile/.env`. Untuk development Android
+Emulator dengan URL `localhost`, aktifkan `adb reverse tcp:8080 tcp:8080` dan
+`adb reverse tcp:3000 tcp:3000`; untuk build staging/production, ganti origin di
+`.env` sebelum rebuild. Panduan setup, deep link, build, signing, dan release
+lengkap ada di [`mobile/README.md`](mobile/README.md).
 
-- **Arsip Surat Terorganisir**: Manajemen Surat Masuk dan Keluar dengan lampiran file.
-- **Berkas Pimpinan**: Ruang penyimpanan digital khusus untuk dokumen-dokumen strategis pimpinan.
-- **Smart Upload**: Dukungan Drag & Drop dengan validasi tipe dan ukuran file otomatis.
+## Verifikasi
 
-### 6. 📨 Sistem Pengajuan Dokumen
+```bash
+cd backend && go test ./... && go vet ./...
+cd frontend && npm run lint && npm run typecheck && npm run build
+cd mobile && flutter analyze && flutter test
+```
 
-- **Workflow Mandiri**: Alur pengajuan dari tingkat PAC yang langsung masuk ke antrean verifikasi di tingkat Cabang.
-- **Update Status**: Notifikasi visual terkait status approval dokumen.
+Health check: `GET /health/live` dan `GET /health/ready`. OpenAPI tersedia di `GET /openapi.json` dan UI-nya di frontend `/api-docs`.
 
-### 7. 📜 Log Aktivitas & Realtime
+Public compatibility endpoints berada di `/api/v1/public/*`; sinkronisasi bot memakai `GET /api/v1/public/data` dengan header `X-API-Key`. Endpoint aplikasi menerima cookie session HttpOnly milik Go untuk web atau opaque bearer session `laci_mob_*` untuk Flutter. Secret SSO, R2, SMTP, cron, dan API key integrasi tidak pernah ditanam ke aplikasi mobile.
 
-- **Realtime Monitoring**: Pembaruan data aktivitas secara langsung (Broadcasting) tanpa perlu refresh halaman.
-- **Pelacakan Transparan**: Mencatat setiap aktivitas user (Login, Logout, Create, Update, Delete) secara detail.
-
-### 8. 📋 Presensi Digital
-
-- **Form Publik via QR Code**: Peserta scan QR dan mengisi presensi mandiri tanpa login dengan proteksi anti-duplikat.
-- **Kontrol Status**: Tiga mode pengelolaan sesi — Otomatis (jam), Buka Paksa (10 menit), atau Tutup Manual.
-
-## 🔒 Sistem Keamanan Berlapis
-
-Laci Digital menerapkan standar keamanan terbaru untuk melindungi data organisasi:
-
-1.  **Server-Side Hooks**: Memvalidasi setiap pembuatan user untuk mencegah pendaftaran otomatis melalui provider luar (seperti Google).
-2.  **Middleware Guards**: Memproteksi rute `/dashboard` secara instan; user non-aktif otomatis dialihkan keluar sistem meskipun memiliki sesi aktif.
-3.  **Status Check Logic**: Verifikasi `isActive` di semua level (Client, Middleware, dan Server Actions).
-4.  **SEO & Metadata**: Optimalisasi mesin pencari dengan judul halaman dan meta description yang dinamis untuk setiap modul.
-
-## 🚀 Teknologi Utama
-
-- **Framework**: Next.js 15+ (App Router)
-- **Database**: PostgreSQL with Prisma ORM
-- **Auth**: Better Auth
-- **Styling**: Tailwind CSS & Shadcn UI
-- **Realtime**: WebSocket Integration
-
-## 📄 Akses & Privasi
-
-Proyek ini adalah sistem internal milik **PC IPNU IPPNU Kabupaten Magetan**.
-
-- **Private Repository**: Kode sumber tidak diizinkan untuk dikloning, disalin, atau didistribusikan ulang tanpa izin resmi.
-- **Internal Use Only**: Aplikasi ini hanya digunakan untuk keperluan internal organisasi.
-
----
-
-_Laci Digital - Memberdayakan Organisasi Melalui Teknologi Digital._
+Migration mobile bersifat additive: satu tabel transaksi OAuth berumur pendek ditambahkan. Tidak ada tabel/domain existing yang dihapus atau diubah secara destruktif.

@@ -12,11 +12,15 @@ export default function LoginClient() {
     // Gunakan URLSearchParams standar browser
     const params = new URLSearchParams(window.location.search);
     const logout = params.get("logout");
+    const login = params.get("login");
     const verified = params.get("verified");
     const error = params.get("error");
 
     if (logout === "success") {
       toast.success("Berhasil keluar! Sampai jumpa lagi.");
+      hasToasted.current = true;
+    } else if (login === "cancelled") {
+      toast.info("Login dibatalkan.");
       hasToasted.current = true;
     } else if (verified === "true") {
       toast.success("Email berhasil diverifikasi! Menunggu aktivasi admin.");

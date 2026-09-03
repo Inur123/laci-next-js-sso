@@ -29,7 +29,7 @@ import {
   copyWilayahToCurrentPeriode,
 } from "@/app/actions/wilayah-actions";
 import { toast } from "sonner";
-import { JenisWilayah } from "@prisma/client";
+import type { JenisWilayah } from "@/types/domain";
 
 export function CopyWilayahDialog({ userRole, jenis }: { userRole: string, jenis: JenisWilayah }) {
   const isCabang = userRole === "SEKRETARIS_CABANG";
@@ -150,8 +150,8 @@ export function CopyWilayahDialog({ userRole, jenis }: { userRole: string, jenis
           Salin dari Periode Lain
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] gap-0 p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b">
+      <DialogContent className="sm:max-w-[620px] gap-0 p-0 overflow-hidden rounded-xl">
+        <DialogHeader className="p-6 pb-4 bg-white border-b">
           <DialogTitle className="flex items-center gap-2">
             <MapPin
               className={cn(
@@ -277,7 +277,7 @@ export function CopyWilayahDialog({ userRole, jenis }: { userRole: string, jenis
           )}
         </div>
 
-        <DialogFooter className="p-6 bg-slate-50/50 border-t">
+        <DialogFooter className="p-6 bg-white border-t">
           <Button
             variant="ghost"
             onClick={() => setOpen(false)}

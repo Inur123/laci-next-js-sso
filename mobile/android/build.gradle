@@ -1,0 +1,24 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+
+    // Selaraskan compiler plugin lama dengan toolchain Kotlin yang diperlukan
+    // oleh auth Android terbaru.
+    project.buildscript.configurations.configureEach {
+        resolutionStrategy.force "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
+    }
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

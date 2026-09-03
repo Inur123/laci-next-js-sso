@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Periode } from "@prisma/client";
+import type { Periode } from "@/types/domain";
 import { Spinner } from "@/components/ui/spinner";
 import { CheckCircle } from "lucide-react";
 

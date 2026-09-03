@@ -1,1 +1,10 @@
-export async function GET(){const r=await fetch(`${process.env.GO_API_URL||"http://localhost:8080"}/openapi.json`,{cache:"no-store"});return new Response(r.body,{status:r.status,headers:{"Content-Type":"application/json"}})}
+export async function GET() {
+  const r = await fetch(
+    `${process.env.GO_API_URL || "http://localhost:8080"}/openapi.json`,
+    { cache: "no-store" },
+  );
+  return new Response(r.body, {
+    status: r.status,
+    headers: { "Content-Type": "application/json" },
+  });
+}

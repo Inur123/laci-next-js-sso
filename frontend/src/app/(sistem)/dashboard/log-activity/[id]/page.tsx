@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LogAction, LogModule } from "@prisma/client";
+import { LogAction, LogModule } from "@/types/domain";
 import { formatDate, formatTime } from "@/lib/date-utils";
 import { Suspense } from "react";
 import { LogDetailSkeleton } from "@/components/features/log-activity/log-activity-skeleton";

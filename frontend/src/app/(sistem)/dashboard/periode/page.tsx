@@ -32,9 +32,12 @@ async function PeriodeContent() {
   const cookieStore = await cookies();
   const activeViewId = cookieStore.get("view_periode_id")?.value;
 
-  // Fallback to active period if no viewing cookie is set
+  // Cookie historis yang sudah tidak valid tidak boleh mengalahkan periode aktif.
   const activePeriode = periods.find(p => p.isActive);
-  const targetActiveViewId = activeViewId || activePeriode?.id;
+  const validViewId = periods.some((period) => period.id === activeViewId)
+    ? activeViewId
+    : undefined;
+  const targetActiveViewId = validViewId || activePeriode?.id;
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">

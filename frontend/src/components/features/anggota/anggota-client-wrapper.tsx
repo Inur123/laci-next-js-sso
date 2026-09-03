@@ -15,6 +15,7 @@ export function AnggotaClientWrapper({
   stats,
   initialData,
   activeUsers,
+  periods = [],
 }: any) {
   const [activeTab, setActiveTab] = useState<"PENDING" | "DITERIMA" | "DITOLAK">("PENDING");
 
@@ -67,6 +68,8 @@ export function AnggotaClientWrapper({
             currentPage={1}
             totalItems={initialData.total}
             activeUsers={activeUsers}
+            periods={periods}
+            currentPeriodId={periodeAktif?.id}
             initialSearchTerm=""
             initialSelectedUser={userId || "ALL"}
             initialSortKey="namaLengkap"

@@ -17,19 +17,11 @@ import {
   User,
   Calendar,
   Building,
-  Download,
   AlertCircle,
-  ExternalLink,
-  Eye,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
-import { Spinner } from "@/components/ui/spinner";
-import { isPdf, isImage } from "@/lib/encryption";
-import { getPengajuanDownloadToken } from "@/app/actions/pengajuan-berkas-actions";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Smartphone } from "lucide-react";
-import { useEffect } from "react";
+import { PengajuanFileAttachment } from "@/components/features/pengajuan-berkas/pengajuan-file-attachment";
 
 type PengajuanDetail = {
   id: string;
@@ -102,34 +94,18 @@ export function PengajuanBerkasDetail({
   isCabang,
   showSubmitterInfo = isCabang,
   showActions = isCabang,
+  isReference = false,
 }: {
   pengajuan: PengajuanDetail;
   isCabang: boolean;
   showSubmitterInfo?: boolean;
   showActions?: boolean;
+  isReference?: boolean;
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [alasanPenolakan, setAlasanPenolakan] = useState("");
-
-  const [isPdfLoading, setIsPdfLoading] = useState(true);
-  const [isImageLoading, setIsImageLoading] = useState(true);
-  const [downloadToken, setDownloadToken] = useState<string | null>(null);
-  const isMobile = useIsMobile();
-
-  // Determine file type for preview
-  const showPdfPreview = isPdf(pengajuan.file);
-  const showImagePreview = isImage(pengajuan.file);
-
-  // Fetch token for PDF preview/open
-  useEffect(() => {
-    if (pengajuan.id && showPdfPreview) {
-      getPengajuanDownloadToken(pengajuan.id)
-        .then(setDownloadToken)
-        .catch(console.error);
-    }
-  }, [pengajuan.id, showPdfPreview]);
 
   // Confirm Modal States
   const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
@@ -472,177 +448,12 @@ export function PengajuanBerkasDetail({
         </div>
       </div>
 
-      {/* File Preview - Full Width */}
-      {pengajuan.file ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>File Lampiran</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col md:flex-row items-center justify-between p-4 border rounded-lg gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-slate-100 rounded-full">
-                  <FileText className="w-8 h-8 text-slate-500" />
-                </div>
-                <div>
-                  <p className="font-medium">File Surat (Terenkripsi)</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                <Button
-                  variant="outline"
-                  asChild
-                  className="flex-1 md:flex-none"
-                >
-                  <a
-                    href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
-                    target="_blank"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Buka
-                  </a>
-                </Button>
-                <Button asChild className="flex-1 md:flex-none">
-                  <a
-                    href={`/api/pengajuan-berkas/download/${pengajuan.id}${downloadToken ? `?token=${downloadToken}` : ""}`}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </a>
-                </Button>
-              </div>
-            </div>
-
-            {/* Preview Section */}
-            {(showPdfPreview || showImagePreview) && (
-              <div className="space-y-4">
-                <div className="p-2 border-b bg-slate-50/50 text-xs font-medium flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-3 h-3 text-primary" />
-                    Pratinjau {showPdfPreview ? "PDF" : "Gambar"}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-[10px] text-primary hover:text-primary hover:bg-primary/5"
-                    asChild
-                  >
-                    <a
-                      href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
-                      target="_blank"
-                    >
-                      <ExternalLink className="w-3 h-3 mr-1" />
-                      Layar Penuh
-                    </a>
-                  </Button>
-                </div>
-
-                <div className="w-full bg-slate-50 border rounded-lg overflow-hidden relative">
-                  {showPdfPreview && (
-                    <div className="w-full min-h-[200px] md:h-[750px] bg-white relative">
-                      {isMobile ? (
-                        <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 h-full">
-                          <div className="p-4 bg-white rounded-full shadow-sm mb-4">
-                            <Smartphone className="w-8 h-8 text-primary" />
-                          </div>
-                          <h3 className="text-sm font-semibold text-slate-800 mb-2">
-                            Pratinjau PDF di Mobile
-                          </h3>
-                          <p className="text-xs text-slate-500 mb-6 max-w-[240px] leading-relaxed">
-                            Browser mobile tidak dapat menampilkan PDF secara
-                            langsung. Klik tombol di bawah untuk membuka file.
-                          </p>
-                          <Button
-                            asChild
-                            className="shadow-md hover:shadow-lg transition-all"
-                          >
-                            <a
-                              href={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
-                              target="_blank"
-                            >
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              Buka PDF Sekarang
-                            </a>
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          {isPdfLoading && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
-                              <Spinner className="h-8 w-8 mb-3 text-primary" />
-                              <p className="text-sm text-muted-foreground animate-pulse">
-                                Memuat...
-                              </p>
-                            </div>
-                          )}
-                          <object
-                            data={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}#view=FitH`}
-                            type="application/pdf"
-                            width="100%"
-                            height="100%"
-                            className="w-full h-full"
-                            onLoad={() => setIsPdfLoading(false)}
-                          >
-                            <iframe
-                              src={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true${downloadToken ? `&token=${downloadToken}` : ""}`}
-                              className="w-full h-full border-none"
-                              title="PDF Preview"
-                            />
-                          </object>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {showImagePreview && (
-                    <div className="w-full flex justify-center p-4 relative min-h-[300px]">
-                      {isImageLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 z-10">
-                          <Spinner className="h-8 w-8 mb-3 text-primary" />
-                          <p className="text-sm text-muted-foreground animate-pulse">
-                            Memuat...
-                          </p>
-                        </div>
-                      )}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`/api/pengajuan-berkas/download/${pengajuan.id}?preview=true`}
-                        alt="Pratinjau Gambar"
-                        className={`max-w-full max-h-[1000px] rounded shadow-sm object-contain transition-opacity duration-300 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
-                        onLoad={() => setIsImageLoading(false)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              File siap diakses secara otomatis saat dibuka atau diunduh
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>File Lampiran</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg text-center bg-slate-50">
-              <div className="p-4 bg-slate-100 rounded-full mb-3">
-                <FileText className="w-8 h-8 text-muted-foreground/50" />
-              </div>
-              <h3 className="font-medium text-muted-foreground">
-                File tidak ada
-              </h3>
-              <p className="text-sm text-muted-foreground/70 mt-1">
-                Pengajuan ini tidak memiliki lampiran file.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <PengajuanFileAttachment
+        key={`${pengajuan.id}:${pengajuan.file}:${isReference}`}
+        id={pengajuan.id}
+        file={pengajuan.file}
+        isReference={isReference}
+      />
 
       {/* Confirmation Modals */}
       <ConfirmModal

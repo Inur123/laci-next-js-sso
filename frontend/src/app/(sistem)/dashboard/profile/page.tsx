@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import ProfilePageClient from "@/components/features/profile/profile-page-client";
 import { getApplicationUser } from "@/lib/application-context";
-import type { Session } from "@/lib/auth";
 
 export const metadata = {
   title: "Profile | Laci Digital",

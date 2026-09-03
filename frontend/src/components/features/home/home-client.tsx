@@ -27,10 +27,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSession } from "@/lib/auth-client";
+import { loginWithSSO, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { getPublicStats } from "@/app/actions/dashboard-actions";
-import { authClient } from "@/lib/auth-client";
 import { requestLocation } from "@/lib/location";
 import { toast } from "sonner";
 import LoginClient from "@/components/features/auth/login-client";
@@ -203,11 +202,7 @@ export default function HomeClient({ session, stats }: HomeClientProps) {
 
     setLoggingInFrom(source);
     try {
-      await authClient.signIn.oauth2({
-        providerId: "sso-ipnu",
-        callbackURL: `${window.location.origin}/dashboard?login=success`,
-        errorCallbackURL: `${window.location.origin}/?error=auth_error`,
-      });
+      loginWithSSO();
     } catch (error) {
       console.error("SSO Login error:", error);
       toast.error("Terjadi kesalahan saat menghubungi server SSO.");

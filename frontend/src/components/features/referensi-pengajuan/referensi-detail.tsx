@@ -49,6 +49,7 @@ export function ReferensiPengajuanDetail({
         isCabang={false}
         showSubmitterInfo={true}
         showActions={false}
+        isReference={true}
       />
     </div>
   );

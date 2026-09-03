@@ -11,7 +11,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { AnggotaSkeleton } from "@/components/features/anggota/anggota-skeleton";
-import { getApplicationActivePeriod } from "@/lib/application-context";
+import { getApplicationActivePeriod, getApplicationPeriods } from "@/lib/application-context";
 import { auth } from "@/auth";
 import { AnggotaClientWrapper } from "@/components/features/anggota/anggota-client-wrapper";
 
@@ -44,7 +44,9 @@ async function AnggotaPageContent({
   searchParams: SearchParams;
   userId?: string;
 }) {
-  const periodeAktif = userId ? await getApplicationActivePeriod() : null;
+  const [periodeAktif, periods] = userId
+    ? await Promise.all([getApplicationActivePeriod(), getApplicationPeriods()])
+    : [null, []];
 
   const session = await auth();
   const userRole = session?.user?.role;
@@ -63,6 +65,7 @@ async function AnggotaPageContent({
   return (
     <AnggotaClientWrapper
       periodeAktif={periodeAktif}
+      periods={periods}
       userRole={userRole}
       userId={userId}
       stats={stats}

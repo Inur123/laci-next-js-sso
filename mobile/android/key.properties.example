@@ -1,0 +1,4 @@
+storeFile=/absolute/path/to/laci-upload.jks
+storePassword=replace-from-secret-manager
+keyAlias=laci-upload
+keyPassword=replace-from-secret-manager

@@ -21,7 +21,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useRouter } from "next/navigation";
 import {
   Pencil,
   Trash2,
@@ -71,8 +70,6 @@ export function WilayahList({
   jenis,
   userRole,
 }: WilayahListProps) {
-  const router = useRouter();
-  
   const [data, setData] = useState<WilayahItem[]>(initialData);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [currentPage, setCurrentPage] = useState(initialCurrentPage);
@@ -284,37 +281,38 @@ export function WilayahList({
           </div>
         </div>
 
-        <div className="bg-white border rounded-lg overflow-x-auto shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50 hover:bg-slate-50 border-y">
-              <TableHead className="w-[50px] font-semibold text-slate-600">No</TableHead>
+        <div className="rounded-md border">
+        <div className="overflow-x-auto">
+        <Table className="w-full table-fixed">
+          <TableHeader className="sticky top-0 bg-white z-10">
+            <TableRow>
+              <TableHead className="w-[50px] bg-slate-50/40 text-center whitespace-nowrap font-semibold text-slate-600">No</TableHead>
               <TableHead 
-                className="font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
+                className="w-[240px] bg-slate-50/40 whitespace-nowrap font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
                 onClick={() => handleSort("nama")}
               >
                 Nama {jenis === "RANTING" ? "Ranting" : "PK"} <SortIcon col="nama" />
               </TableHead>
               {isCabang && <TableHead className="font-semibold text-slate-600">PAC</TableHead>}
               <TableHead 
-                className="font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
+                className="w-[180px] bg-slate-50/40 whitespace-nowrap font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
                 onClick={() => handleSort("ketua")}
               >
                 Ketua <SortIcon col="ketua" />
               </TableHead>
               <TableHead 
-                className="font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
+                className="w-[180px] bg-slate-50/40 whitespace-nowrap font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
                 onClick={() => handleSort("kontak")}
               >
                 Kontak <SortIcon col="kontak" />
               </TableHead>
               <TableHead 
-                className="font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
+                className="bg-slate-50/40 whitespace-nowrap font-semibold text-slate-600 cursor-pointer hover:bg-slate-100"
                 onClick={() => handleSort("alamat")}
               >
                 Alamat <SortIcon col="alamat" />
               </TableHead>
-              {!isCabang && <TableHead className="text-right font-semibold text-slate-600">Aksi</TableHead>}
+              {!isCabang && <TableHead className="w-[130px] text-right bg-slate-50/40 whitespace-nowrap font-semibold text-slate-600">Aksi</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -356,20 +354,20 @@ export function WilayahList({
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-blue-600 border-blue-200 hover:bg-blue-50"
+                          className="h-8 w-8 p-0"
                           onClick={() => handleEdit(item)}
                           disabled={loading}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-4 w-4 text-blue-600" />
                         </Button>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-red-600 border-red-200 hover:bg-red-50"
+                          className="h-8 w-8 p-0"
                           onClick={() => setConfirmDeleteId(item.id)}
                           disabled={loading}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>
                     </TableCell>
@@ -468,6 +466,7 @@ export function WilayahList({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       <WilayahForm

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { AnggotaDetailSkeleton } from "@/components/features/anggota/anggota-skeleton";
+import { auth } from "@/auth";
 
 export async function generateMetadata({
   params,
@@ -37,11 +38,16 @@ async function AnggotaDetailContent({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const anggota = await getAnggotaById(id);
+  const [anggota, session] = await Promise.all([getAnggotaById(id), auth()]);
 
   if (!anggota) {
     return notFound();
   }
 
-  return <AnggotaDetailClient anggota={anggota} />;
+  return (
+    <AnggotaDetailClient
+      anggota={anggota}
+      userRole={session?.user?.role || "SEKRETARIS_PAC"}
+    />
+  );
 }

@@ -1,0 +1,70 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+def releaseSigningKeys = ["storeFile", "storePassword", "keyAlias", "keyPassword"]
+def releaseSigningConfigured = keystorePropertiesFile.exists() &&
+        releaseSigningKeys.every { key -> keystoreProperties[key]?.toString()?.trim() }
+if (keystorePropertiesFile.exists() && !releaseSigningConfigured) {
+    throw new GradleException("android/key.properties belum lengkap; isi storeFile, storePassword, keyAlias, dan keyPassword")
+}
+
+android {
+    namespace = "org.pelajarnumagetan.laci_mobile"
+    // flutter_web_auth_2 5.x memakai Android Auth Tab/Browser 1.9 yang
+    // membutuhkan API 36 saat kompilasi. targetSdk tetap mengikuti Flutter.
+    compileSdk = 36
+    // Selaraskan dengan plugin Android Flutter agar build lokal dan CI memakai
+    // toolchain native yang sama tanpa fallback versi.
+    ndkVersion = "27.0.12077973"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
+    defaultConfig {
+        applicationId = "org.pelajarnumagetan.laci_mobile"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        minSdk = 21
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        if (releaseSigningConfigured) {
+            release {
+                storeFile = file(keystoreProperties["storeFile"])
+                storePassword = keystoreProperties["storePassword"]
+                keyAlias = keystoreProperties["keyAlias"]
+                keyPassword = keystoreProperties["keyPassword"]
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // Never produce a distributable release with Flutter's debug key.
+            // Without key.properties Gradle creates an unsigned QA artifact.
+            signingConfig = releaseSigningConfigured ? signingConfigs.release : null
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}

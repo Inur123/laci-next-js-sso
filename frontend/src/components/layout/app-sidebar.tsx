@@ -50,9 +50,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { signOut } from "@/lib/auth-client";
+import { logoutFromSSO } from "@/lib/auth-client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
 const capitalizeName = (name: string) => {
@@ -63,8 +63,7 @@ const capitalizeName = (name: string) => {
     .join(" ");
 };
 
-// Interface eksplisit untuk Better Auth User agar Linter tidak merah
-interface BetterUser {
+interface ApplicationUser {
   id: string;
   name: string | null;
   email: string | null;
@@ -98,7 +97,7 @@ const items = [
   },
 ];
 
-const getUserImageUrl = (user: BetterUser) => {
+const getUserImageUrl = (user: ApplicationUser) => {
   if (!user.image) return "";
   if (user.image.startsWith("http")) return user.image;
   return `/api/manajemen-user/${user.id}/image?v=${user.image}`;
@@ -108,11 +107,10 @@ export function AppSidebar({
   user,
   themeClass,
 }: {
-  user: BetterUser;
+  user: ApplicationUser;
   themeClass?: string;
 }) {
   const pathname = usePathname() || "";
-  const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
 
   const handleMenuClick = () => {
@@ -127,15 +125,9 @@ export function AppSidebar({
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     handleMenuClick();
-    await signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.replace("/?logout=success");
-        },
-      },
-    });
+    logoutFromSSO();
   };
 
   const getInitials = (name: string) => {

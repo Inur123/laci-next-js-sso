@@ -435,14 +435,14 @@ export function ReferensiPengajuanList({
       <div className="relative">
         <div className="rounded-md border">
           <div className="overflow-x-auto">
-            <Table className="w-full table-fixed [&_td]:py-2 [&_th]:py-2">
+            <Table className="w-full min-w-[1140px] table-fixed [&_td]:py-2 [&_th]:py-2">
               <TableHeader className="sticky top-0 bg-white z-10">
                 <TableRow>
                   <TableHead className="w-[50px] bg-slate-50/40 text-center whitespace-nowrap">
                     No
                   </TableHead>
                   <TableHead
-                    className="w-[180px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[260px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("noSurat")}
                   >
                     <span className="inline-flex items-center">
@@ -451,7 +451,7 @@ export function ReferensiPengajuanList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[160px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[180px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("pengaju")}
                   >
                     <span className="inline-flex items-center">
@@ -469,7 +469,7 @@ export function ReferensiPengajuanList({
                     </span>
                   </TableHead>
                   <TableHead
-                    className="w-[150px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    className="w-[140px] bg-slate-50/40 whitespace-nowrap cursor-pointer select-none hover:bg-slate-100 transition-colors"
                     onClick={() => handleSort("tanggal")}
                   >
                     <span className="inline-flex items-center">
@@ -495,7 +495,7 @@ export function ReferensiPengajuanList({
                       <SortIcon col="status" />
                     </span>
                   </TableHead>
-                  <TableHead className="w-[60px] text-right bg-slate-50/40 whitespace-nowrap">
+                  <TableHead className="w-[72px] text-right bg-slate-50/40 whitespace-nowrap">
                     Aksi
                   </TableHead>
                 </TableRow>
@@ -522,13 +522,20 @@ export function ReferensiPengajuanList({
                         <TableCell className="text-center text-muted-foreground font-medium">
                           {(currentPage - 1) * 10 + index + 1}
                         </TableCell>
-                        <TableCell className="font-medium whitespace-nowrap">
-                          {item.noSurat}
+                        <TableCell className="font-medium">
+                          <span className="block truncate" title={item.noSurat}>
+                            {item.noSurat}
+                          </span>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap pr-6">
-                          {item.user?.name
-                            ? capitalizeName(item.user.name)
-                            : "-"}
+                        <TableCell>
+                          <span
+                            className="block truncate"
+                            title={item.user?.name ? capitalizeName(item.user.name) : "-"}
+                          >
+                            {item.user?.name
+                              ? capitalizeName(item.user.name)
+                              : "-"}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -543,18 +550,17 @@ export function ReferensiPengajuanList({
                             {item.penerima}
                           </Badge>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap pr-8">
+                        <TableCell className="whitespace-nowrap">
                           {new Date(item.tanggal).toLocaleDateString("id-ID", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
                           })}
                         </TableCell>
-                        <TableCell
-                          className="max-w-[300px] truncate"
-                          title={item.keperluan}
-                        >
-                          {capitalizeName(item.keperluan)}
+                        <TableCell>
+                          <span className="block truncate" title={capitalizeName(item.keperluan)}>
+                            {capitalizeName(item.keperluan)}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Badge

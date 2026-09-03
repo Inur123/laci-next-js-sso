@@ -32,7 +32,7 @@ import { UserFilterSelect } from "@/components/shared/user-filter-select";
 import { Label } from "@/components/ui/label";
 import { RefreshCcw, Eye, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { LogAction, LogModule } from "@prisma/client";
+import { LogAction, LogModule } from "@/types/domain";
 import { DatePickerWithPresets } from "@/components/ui/date-range-picker-presets";
 import { DateRange } from "react-day-picker";
 import {

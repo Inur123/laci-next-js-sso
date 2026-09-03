@@ -5,7 +5,7 @@
  * Impact: ~25KB bundle reduction
  *
  * Usage:
- * import { formatDate, formatDateTime, formatTime } from "@/lib/date-utils";
+ * import { formatDate, formatTime } from "@/lib/date-utils";
  */
 
 import { format as formatFn } from "date-fns/format";
@@ -36,18 +36,6 @@ export function formatDate(
 }
 
 /**
- * Format date with time to Indonesian locale
- * @param date - Date object or ISO string
- * @returns Formatted datetime string
- *
- * @example
- * formatDateTime(new Date()) // "31 Jan 2026, 12:43"
- */
-export function formatDateTime(date: Date | string | null | undefined): string {
-  return formatDate(date, "dd MMM yyyy, HH:mm");
-}
-
-/**
  * Format time only
  * @param date - Date object or ISO string
  * @returns Formatted time string
@@ -57,20 +45,6 @@ export function formatDateTime(date: Date | string | null | undefined): string {
  */
 export function formatTime(date: Date | string | null | undefined): string {
   return formatDate(date, "HH:mm");
-}
-
-/**
- * Format date for Excel export (Indonesian format)
- * @param date - Date object or ISO string
- * @returns Formatted date string for Excel
- *
- * @example
- * formatDateForExcel(new Date()) // "31/01/2026"
- */
-export function formatDateForExcel(
-  date: Date | string | null | undefined,
-): string {
-  return formatDate(date, "dd/MM/yyyy");
 }
 
 /**
@@ -92,28 +66,6 @@ export function formatDateForInput(
     console.error("Error formatting date for input:", error);
     return "";
   }
-}
-
-/**
- * Format relative date (e.g., "2 hari yang lalu")
- * Note: Requires additional date-fns import, use sparingly
- */
-export function formatRelativeDate(
-  date: Date | string | null | undefined,
-): string {
-  if (!date) return "-";
-
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Hari ini";
-  if (diffDays === 1) return "Kemarin";
-  if (diffDays < 7) return `${diffDays} hari yang lalu`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} minggu yang lalu`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} bulan yang lalu`;
-  return `${Math.floor(diffDays / 365)} tahun yang lalu`;
 }
 
 /**

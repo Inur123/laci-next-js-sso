@@ -1,6 +1,6 @@
 "use client";
 
-import { Periode } from "@prisma/client";
+import type { Periode } from "@/types/domain";
 import {
   activatePeriode,
   deletePeriode,
@@ -43,11 +43,15 @@ export function PeriodeList({
   async function handleActivate(id: string) {
     setLoadingId(id);
     const result = await activatePeriode(id);
-    setLoadingId(null);
-    if (result.error) toast.error(result.error);
-    else {
+    if (result.error) {
+      setLoadingId(null);
+      toast.error(result.error);
+    } else {
+      // Setelah periode diaktifkan, hapus pilihan historis agar seluruh modul
+      // langsung mengikuti periode aktif yang baru.
+      await setViewPeriode(null);
       toast.success("Periode berhasil diaktifkan!");
-      refreshData();
+      window.location.reload();
     }
   }
 

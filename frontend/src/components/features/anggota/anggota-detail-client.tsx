@@ -1,15 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { deleteAnggota } from "@/app/actions/anggota-actions";
+import { verifikasiAnggota } from "@/app/actions/anggota-actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { SensitiveInfoItem } from "./sensitive-info-item";
 import {
-  Trash2,
-  Pencil,
+  AlertCircle,
+  CheckCircle,
+  Clock,
   Mail,
   Calendar,
   ArrowLeft,
@@ -22,6 +25,7 @@ import {
   CreditCard,
   GraduationCap,
   School,
+  XCircle,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
@@ -57,16 +61,46 @@ type AnggotaDetail = {
     tanggal: Date | string;
     tempat: string;
   }>;
+  status?: "PENDING" | "DITERIMA" | "DITOLAK";
+  alasanPenolakan?: string | null;
+};
+
+const memberStatusConfig = {
+  PENDING: {
+    label: "Pending",
+    icon: Clock,
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  DITERIMA: {
+    label: "Diterima",
+    icon: CheckCircle,
+    className: "bg-green-50 text-green-700 border-green-200",
+  },
+  DITOLAK: {
+    label: "Ditolak",
+    icon: XCircle,
+    className: "bg-red-50 text-red-700 border-red-200",
+  },
 };
 
 export default function AnggotaDetailClient({
   anggota,
+  userRole,
 }: {
   anggota: AnggotaDetail;
+  userRole: string;
 }) {
-  const [loading, setLoading] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [alasanPenolakan, setAlasanPenolakan] = useState("");
+  const [confirmApproveOpen, setConfirmApproveOpen] = useState(false);
+  const [confirmRejectOpen, setConfirmRejectOpen] = useState(false);
   const router = useRouter();
+  const isCabang =
+    userRole === "SEKRETARIS_CABANG" || userRole === "CABANG";
+  const status = anggota.status || "PENDING";
+  const statusInfo = memberStatusConfig[status];
+  const StatusIcon = statusInfo.icon;
 
   const capitalizeName = (name: string) => {
     if (!name) return "";
@@ -85,16 +119,36 @@ export default function AnggotaDetailClient({
       .slice(0, 2);
   };
 
-  async function handleDelete() {
-    setIsDeleteModalOpen(false);
-    setLoading(true);
-    const result = await deleteAnggota(anggota.id);
+  async function handleApprove() {
+    setIsSubmitting(true);
+    const result = await verifikasiAnggota(anggota.id, "DITERIMA");
+    setIsSubmitting(false);
+    setConfirmApproveOpen(false);
     if (result.error) {
       toast.error(result.error);
-      setLoading(false);
     } else {
       toast.success(result.success);
-      router.push("/dashboard/anggota");
+      router.refresh();
+    }
+  }
+
+  async function handleReject() {
+    if (!alasanPenolakan.trim()) {
+      toast.error("Alasan penolakan wajib diisi");
+      return;
+    }
+    setIsSubmitting(true);
+    const result = await verifikasiAnggota(
+      anggota.id,
+      "DITOLAK",
+      alasanPenolakan,
+    );
+    setIsSubmitting(false);
+    setConfirmRejectOpen(false);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(result.success);
       router.refresh();
     }
   }
@@ -118,18 +172,13 @@ export default function AnggotaDetailClient({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-
-          <Button
-            variant="destructive"
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="flex-1 sm:flex-initial shadow-lg shadow-red-100"
-            disabled={loading}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Hapus
-          </Button>
-        </div>
+        <Badge
+          variant="outline"
+          className={`w-fit gap-1.5 px-3 py-1.5 ${statusInfo.className}`}
+        >
+          <StatusIcon className="w-4 h-4" />
+          {statusInfo.label}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] lg:grid-rows-[auto_1fr] gap-x-8 gap-y-6">
@@ -182,6 +231,94 @@ export default function AnggotaDetailClient({
               </div>
             </CardContent>
           </Card>
+
+          {isCabang && status === "PENDING" && (
+            <Card className="border-slate-200 shadow-sm overflow-hidden">
+              <CardHeader className="bg-slate-50 border-b pb-4">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <CheckCircle size={16} className="text-primary" />
+                  Tindakan Verifikasi
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-5 space-y-4">
+                {!showRejectForm ? (
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => setConfirmApproveOpen(true)}
+                      disabled={isSubmitting}
+                      className="w-full bg-primary hover:bg-primary/90 text-white shadow-md transition-all duration-200"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Verifikasi Anggota
+                    </Button>
+                    <Button
+                      onClick={() => setShowRejectForm(true)}
+                      disabled={isSubmitting}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md transition-all duration-200"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Tolak Pendaftar
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="alasan-penolakan-anggota">
+                        Alasan Penolakan{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Textarea
+                        id="alasan-penolakan-anggota"
+                        value={alasanPenolakan}
+                        onChange={(event) =>
+                          setAlasanPenolakan(event.target.value)
+                        }
+                        placeholder="Jelaskan alasan penolakan..."
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={() => setConfirmRejectOpen(true)}
+                        disabled={isSubmitting || !alasanPenolakan.trim()}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white shadow-md transition-all duration-200"
+                      >
+                        Konfirmasi Penolakan
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowRejectForm(false);
+                          setAlasanPenolakan("");
+                        }}
+                        disabled={isSubmitting}
+                        className="w-full hover:bg-slate-100"
+                      >
+                        Batal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {status === "DITOLAK" && anggota.alasanPenolakan && (
+            <Card className="border-red-200 bg-red-50/40 shadow-sm">
+              <CardContent className="pt-5">
+                <div className="flex items-start gap-3 text-red-700">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold">Alasan Penolakan</p>
+                    <p className="text-sm mt-1 text-red-700/80">
+                      {anggota.alasanPenolakan}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* MAIN CONTENT Area */}
@@ -389,13 +526,25 @@ export default function AnggotaDetailClient({
       </div>
 
       <ConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-        title="Hapus Data Anggota Permanen?"
-        description={`Apakah Anda yakin ingin menghapus data ${anggota.namaLengkap} secara permanen? Seluruh foto dan identitas terkait akan dihapus dari server.`}
+        isOpen={confirmApproveOpen}
+        onClose={() => setConfirmApproveOpen(false)}
+        onConfirm={handleApprove}
+        title="Verifikasi Anggota?"
+        description={`Apakah Anda yakin ingin mengesahkan ${capitalizeName(anggota.namaLengkap)} sebagai anggota?`}
+        confirmText="Ya, Verifikasi"
+        variant="default"
+        loading={isSubmitting}
+      />
+
+      <ConfirmModal
+        isOpen={confirmRejectOpen}
+        onClose={() => setConfirmRejectOpen(false)}
+        onConfirm={handleReject}
+        title="Tolak Pendaftar?"
+        description={`Apakah Anda yakin ingin menolak pendaftaran ${capitalizeName(anggota.namaLengkap)}? Alasan penolakan akan disimpan sebagai status data.`}
+        confirmText="Ya, Tolak"
         variant="destructive"
-        loading={loading}
+        loading={isSubmitting}
       />
     </div>
   );

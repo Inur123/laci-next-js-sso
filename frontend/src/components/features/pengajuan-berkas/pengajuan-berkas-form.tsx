@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PenerimaSurat } from "@prisma/client";
+import type { PenerimaSurat } from "@/types/domain";
 
 type PengajuanBerkasFormProps = {
   pengajuan?: {

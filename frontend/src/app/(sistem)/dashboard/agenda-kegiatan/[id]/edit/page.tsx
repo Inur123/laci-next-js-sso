@@ -59,6 +59,7 @@ async function EditKegiatanContent({
           </p>
         </div>
       </div>
+      
 
       <KegiatanForm kegiatan={kegiatan} userRole={session.user.role} />
     </div>

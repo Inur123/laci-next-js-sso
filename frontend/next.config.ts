@@ -33,7 +33,6 @@ const nextConfig: NextConfig = {
       "@radix-ui/react-select",
       "@radix-ui/react-alert-dialog",
       "@radix-ui/react-avatar",
-      "@radix-ui/react-tabs",
       "@radix-ui/react-tooltip",
       "recharts",
     ],

@@ -83,8 +83,8 @@ export function WilayahForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] gap-0 p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b">
+      <DialogContent className="sm:max-w-[620px] gap-0 p-0 overflow-hidden rounded-xl">
+        <DialogHeader className="p-6 pb-4 bg-white border-b">
           <DialogTitle className="flex items-center gap-2">
             {isEdit ? (
               <Pencil className="h-5 w-5 text-blue-600" />
@@ -97,7 +97,7 @@ export function WilayahForm({
             Isi formulir di bawah ini untuk menyimpan data pimpinan {jenis === "RANTING" ? "ranting" : "komisariat"}.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white">
           <div className="space-y-2">
             <Label htmlFor="nama" className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Nama {jenis === "RANTING" ? "Ranting" : "PK"} <span className="text-red-500">*</span>
@@ -150,12 +150,13 @@ export function WilayahForm({
             <Button
               type="button"
               variant="ghost"
+              className="px-5"
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 text-white shadow-md transition-all duration-200">
+            <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 text-white shadow-md transition-all duration-200 px-6">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Simpan
             </Button>

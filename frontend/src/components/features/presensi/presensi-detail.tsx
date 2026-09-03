@@ -213,7 +213,7 @@ export function PresensiDetail({
         entityId?: string;
       };
 
-      // 1. Cek via Mutation (Prisma Middleware)
+      // 1. Perbarui melalui event realtime dari Go API.
       const isMutation =
         detail.type === "mutation" &&
         (detail.model?.toLowerCase() === "presensidata" ||

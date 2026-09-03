@@ -41,22 +41,22 @@ export function ReferensiSkeleton() {
       {/* Table Skeleton */}
       <div className="rounded-md border">
         <div className="overflow-x-auto">
-          <Table className="w-full table-fixed [&_td]:py-2 [&_th]:py-2">
+          <Table className="w-full min-w-[1140px] table-fixed [&_td]:py-2 [&_th]:py-2">
             <TableHeader className="sticky top-0 bg-white z-10">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[50px] text-center bg-slate-50/40 whitespace-nowrap">
                   No
                 </TableHead>
-                <TableHead className="w-[180px] bg-slate-50/40 whitespace-nowrap">
+                <TableHead className="w-[260px] bg-slate-50/40 whitespace-nowrap">
                   No Surat
                 </TableHead>
-                <TableHead className="w-[160px] bg-slate-50/40 whitespace-nowrap">
+                <TableHead className="w-[180px] bg-slate-50/40 whitespace-nowrap">
                   Pengaju
                 </TableHead>
                 <TableHead className="w-[120px] bg-slate-50/40 whitespace-nowrap">
                   Penerima
                 </TableHead>
-                <TableHead className="w-[150px] bg-slate-50/40 whitespace-nowrap">
+                <TableHead className="w-[140px] bg-slate-50/40 whitespace-nowrap">
                   Tanggal
                 </TableHead>
                 <TableHead className="bg-slate-50/40 whitespace-nowrap">
@@ -65,7 +65,7 @@ export function ReferensiSkeleton() {
                 <TableHead className="w-[120px] bg-slate-50/40 whitespace-nowrap">
                   Status
                 </TableHead>
-                <TableHead className="w-[60px] text-right bg-slate-50/40 whitespace-nowrap">
+                <TableHead className="w-[72px] text-right bg-slate-50/40 whitespace-nowrap">
                   Aksi
                 </TableHead>
               </TableRow>
