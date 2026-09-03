@@ -17,9 +17,7 @@
 ---
 
 ## 📖 Tentang Aplikasi
-**Laci** adalah ekosistem aplikasi terpusat yang dirancang khusus untuk memodernisasi dan mendigitalkan seluruh tata kelola administrasi organisasi IPNU (Ikatan Pelajar Nahdlatul Ulama) dan IPPNU (Ikatan Pelajar Putri Nahdlatul Ulama). 
-
-Fungsi utama Laci adalah sebagai **Single Sign-On (SSO) Identity Provider**, di mana satu akun Laci dapat digunakan oleh pimpinan (Cabang, PAC, Ranting) maupun anggota untuk masuk (login) dan terhubung ke berbagai sistem atau aplikasi turunan lainnya (seperti Sistem Anggota, Sistem Presensi, dll) tanpa perlu mendaftar berulang kali.
+**Laci** adalah ekosistem aplikasi terpusat yang dirancang khusus untuk memodernisasi dan mendigitalkan seluruh tata kelola administrasi organisasi IPNU (Ikatan Pelajar Nahdlatul Ulama) dan IPPNU (Ikatan Pelajar Putri Nahdlatul Ulama). Seluruh akses masuk (login) ke dalam aplikasi ini dan sistem turunannya sudah terintegrasi menggunakan akun **Single Sign-On (SSO)**.
 
 ## 🏗️ Arsitektur Sistem
 Sejak versi `v0.3.0`, Laci telah bertransformasi dari sistem monolitik menjadi arsitektur modern yang terpisah (*Decoupled Architecture*) untuk menjamin performa, keamanan, dan skalabilitas:
@@ -30,8 +28,8 @@ Sejak versi `v0.3.0`, Laci telah bertransformasi dari sistem monolitik menjadi a
 
 ## ✨ Fitur Utama
 
-### 1. 🔐 Sistem Single Sign-On (SSO) Terpusat
-Menggunakan standar otentikasi modern (OAuth2/OIDC), Laci bertindak sebagai gerbang utama. Pengurus hanya perlu satu kredensial untuk mengakses berbagai portal aplikasi IPNU-IPPNU secara aman.
+### 1. 🔐 Login Terintegrasi (SSO)
+Akses masuk (login) ke dalam sistem menggunakan akun Single Sign-On (SSO) terpusat.
 
 ### 2. 🗺️ Manajemen Struktur Wilayah
 Sistem hierarki wilayah yang lengkap dan berjenjang. Pimpinan dapat mengelola, memantau, dan menambahkan struktur di bawahnya:
