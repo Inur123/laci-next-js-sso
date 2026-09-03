@@ -1,6 +1,17 @@
+# 🗄️ Laci Digital - PC IPNU IPPNU Magetan
+
 <div align="center">
-  <h1>🗄️ Laci IPNU IPPNU</h1>
-  <p><strong>Sistem Administrasi Cerdas & Single Sign-On (SSO) Terpusat</strong></p>
+  <img src="public/images/readme-preview.webp" alt="Laci Digital Preview" width="100%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  
+  <p align="center">
+    <img src="https://img.shields.io/badge/Versi%20Sistem-v0.3.0-22c55e?style=for-the-badge" alt="Versi Sistem">
+  </p>
+  
+  <p align="center">
+    <strong>Sistem Administrasi Cerdas & Single Sign-On (SSO) Terpusat</strong>
+    <br />
+    <em>Kelola Organisasi Lebih Modern, Efisien, dan Transparan.</em>
+  </p>
 </div>
 
 ---
