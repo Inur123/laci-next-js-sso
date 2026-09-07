@@ -1,18 +1,22 @@
-# 🗄️ Laci Digital - PC IPNU IPPNU Magetan
+<p align="center">
+  <a href="https://laci.pelajarnumagetan.or.id" target="_blank">
+    <img src="frontend/public/images/logo-laci.webp" width="200" alt="Laci Digital">
+  </a>
+</p>
 
-<div align="center">
-  <img src="frontend/public/images/readme-preview.webp" alt="Laci Digital Preview" width="100%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-  
-  <p align="center">
-    <img src="https://img.shields.io/badge/Versi%20Sistem-v0.3.0-22c55e?style=for-the-badge" alt="Versi Sistem">
-  </p>
-  
-  <p align="center">
-    <strong>Sistem Administrasi Cerdas & Single Sign-On (SSO) Terpusat</strong>
-    <br />
-    <em>Kelola Organisasi Lebih Modern, Efisien, dan Transparan.</em>
-  </p>
-</div>
+<h1 align="center">Laci Digital IPNU IPPNU</h1>
+
+<p align="center">
+  Sistem administrasi dan pengarsipan digital terpusat bagi PC IPNU IPPNU Kabupaten Magetan.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/Next.js-15-000000?logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Flutter-3-02569B?logo=flutter&logoColor=white" alt="Flutter">
+</p>
 
 ---
 
